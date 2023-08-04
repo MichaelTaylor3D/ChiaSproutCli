@@ -1,10 +1,8 @@
-Sure, here's a simple README for the Sprout CLI tool:
-
----
-
 # Sprout CLI Tool
 
 Sprout is a command-line interface (CLI) tool that helps you manage and interact with your data layer. 
+
+If this tool was useful for you, please consider donating so I can continue building more Chia Datalayer Tools: xch1es9faez5evlvdyfjdjth40fazfm3c9gptds0reuhryf30y3kl67qtcsc83
 
 ## Prerequisites
 
