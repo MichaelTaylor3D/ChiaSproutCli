@@ -1,0 +1,10 @@
+{
+  "store_id": "d1504fffd118055abb560b43bd68beecfda1f0f24d04f0d8c6e3adaa391123e5",
+  "deploy_dir": "./dist",
+  "datalayer_host": "https://localhost:8562",
+  "wallet_host": "https://localhost:9256",
+  "certificate_folder_path": "~/.chia/mainnet/config/ssl",
+  "default_wallet_id": 1,
+  "default_fee": 300000000,
+  "default_mirror_coin_amount": 300000000
+}

@@ -1,0 +1,23 @@
+{
+  "name": "chia-sprout-cli",
+  "version": "1.0.0",
+  "description": "CLI tool to deploy a website on datalayer",
+  "main": "index.js",
+  "bin": {
+    "sprout": "./index.js"
+  },
+  "pkg": {
+    "scripts": "*.js",
+    "assets": "public/**/*"
+  },
+  "author": "Michael Taylor",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^11.1.1",
+    "superagent": "^8.0.9",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}
