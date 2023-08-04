@@ -6,6 +6,13 @@
   "bin": {
     "sprout": "./index.js"
   },
+  "scripts": {
+    "prepare-binary": "rm -rf build && mkdir build",
+    "create-win-x64-dist": "npm run prepare-binary && pkg package.json -t node18-win-x64 --out-path build",
+    "create-mac-x64-dist": "npm run prepare-binary && pkg package.json -t node18-macos-x64 --out-path build",
+    "create-linux-x64-dist": "npm run prepare-binary && pkg package.json -t node18-linux-x64 --out-path build",
+    "create-linux-arm64-dist": "npm run prepare-binary && pkg package.json -t node18-linux-arm64 --out-path build"
+  },
   "pkg": {
     "scripts": "*.js",
     "assets": "public/**/*"
