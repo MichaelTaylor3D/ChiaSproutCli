@@ -82,9 +82,15 @@ const hasUnconfirmedTransactions = async (options) => {
   const data = JSON.parse(response.text);
 
   if (data.success) {
-    console.log("Wallet has pending transactions");
+    const unconfirmedTransactions = data.transactions.some(
+      (transaction) => !transaction.confirmed
+    );
 
-    return data.transactions.some((transaction) => !transaction.confirmed);
+    if (unconfirmedTransactions) {
+      console.log("Wallet has pending transactions");
+    }
+
+    return unconfirmedTransactions;
   }
 
   return false;

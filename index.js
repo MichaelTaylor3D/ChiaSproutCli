@@ -12,41 +12,69 @@ const {
   CONFIG_FILENAME,
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
+const { callAndAwaitBlockchainRPC } = require("./utils/chia-utils");
 
-async function walkAndDeployDir(dirPath, storeId) {
+async function walkDirAndCreateChangeList(
+  dirPath,
+  storeId,
+  existingKeys,
+  rootDir = dirPath
+) {
+  const config = getConfig();
   const files = fs.readdirSync(dirPath);
-  const existingKeys = await datalayer.getkeys(storeId);
 
-  console.log("Existing keys", existingKeys);
-
-  let changeList = [];
-
-  if (existingKeys?.keys?.length > 0) {
-    existingKeys.keys.forEach((key) => {
-      changeList.push({
-        action: "delete",
-        key: key,
-      });
-    });
+  if (!existingKeys) {
+    existingKeys = await callAndAwaitBlockchainRPC(
+      `${config.datalayer_host}/get_keys`,
+      {
+        id: config.store_id,
+      }
+    );
   }
 
-  files.forEach(async (file) => {
-    if (fs.statSync(path.join(dirPath, file)).isDirectory()) {
-      await walkAndDeployDir(path.join(dirPath, file), storeId);
+  let changelist = [];
+
+  for (const file of files) {
+    const filePath = path.join(dirPath, file);
+
+    if (fs.statSync(filePath).isDirectory()) {
+      const subdirChangeList = await walkDirAndCreateChangeList(
+        filePath,
+        storeId,
+        existingKeys,
+        rootDir // Pass rootDir to the recursive function call
+      );
+      changelist.push(...subdirChangeList);
     } else {
-      const filePath = path.join(dirPath, file);
+      const relativeFilePath = path.relative(rootDir, filePath);
       const contentBuffer = fs.readFileSync(filePath);
       const content = contentBuffer.toString("hex");
-      changeList.push({
+
+      if (existingKeys?.keys?.length > 0) {
+        const existingKey = existingKeys.keys.find(
+          (key) => key === `0x${encodeHex(relativeFilePath)}`
+        );
+
+        if (existingKey) {
+          console.log(`Updating existing key ${relativeFilePath}`);
+          changelist.push({
+            action: "delete",
+            key: existingKey,
+          });
+        } else {
+          console.log(`Inserting new key ${relativeFilePath}`);
+        }
+      }
+
+      changelist.push({
         action: "insert",
-        key: encodeHex(file),
+        key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
         value: content,
       });
     }
-  });
+  }
 
-  console.log("Pushing files to datalayer...", changeList);
-  await datalayer.pushChangeListToDataLayer(storeId, changeList);
+  return changelist;
 }
 
 async function run() {
@@ -73,7 +101,18 @@ async function run() {
         return;
       }
 
-      await walkAndDeployDir(config.deploy_dir, config.store_id);
+      const changelist = await walkDirAndCreateChangeList(
+        config.deploy_dir,
+        config.store_id
+      );
+      console.log("Pushing files to datalayer...");
+
+      await callAndAwaitBlockchainRPC(`${config.datalayer_host}/batch_update`, {
+        changelist,
+        id: config.store_id,
+      });
+
+      console.log("Done");
     })
     .command("init", "Initialize a new config file", {}, () => {
       if (fs.existsSync(CONFIG_FILENAME)) {
@@ -90,11 +129,27 @@ async function run() {
       }
 
       if (!(await wallet.walletIsSynced())) {
-        console.error("The wallet is not synced, please wait for it to sync and try again");
+        console.error(
+          "The wallet is not synced, please wait for it to sync and try again"
+        );
         return;
       }
 
-      const storeId = await datalayer.createDataLayerStore();
+      console.log(
+        "Creating new store, please wait for the transaction to complete"
+      );
+      const response = await callAndAwaitBlockchainRPC(
+        `${config.datalayer_host}/create_data_store`,
+        {}
+      );
+
+      if (!response.success) {
+        console.error("Failed to create new store");
+        return;
+      }
+
+      const storeId = response.id;
+
       fs.writeJsonSync(
         CONFIG_FILENAME,
         { ...config, store_id: storeId },

@@ -343,6 +343,7 @@ const createDataLayerStore = async () => {
   const url = `${CONFIG.datalayer_host}/create_data_store`;
 
   try {
+    console.log('!')
     const response = await superagent
       .post(url)
       .key(key)
@@ -351,15 +352,17 @@ const createDataLayerStore = async () => {
       .send({
         fee: CONFIG.default_fee,
       });
-
+console.log('!!')
     const data = response.body;
 
     if (data.success) {
+      console.log(data)
       return data.id;
     }
 
     throw new Error(data.error);
   } catch (error) {
+    console.error("There was an error creating your store", error);
     throw new Error(error.message);
   }
 };
