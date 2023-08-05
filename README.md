@@ -67,6 +67,12 @@ This command creates a new data layer store and updates the `store_id` value in 
 
 This command deletes all items from the current store. An error will be thrown if a `store_id` is not specified in `sprout.config.json`.
 
+### `$ sprout store clean`
+This command starts a web2 gateway server for development purposes. When you run this you can now view the files your just deployed to the datalayer.
+
+### `$ sprout web2`
+This command creates a temporary Web2 Gateway for datalayer to view the data in the browser.
+
 ### `$ sprout help`
 
 This command prints out all available commands in the console.

@@ -3,12 +3,18 @@
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
 const handlers = require("./handlers");
+const web2 = require("./server");
 
 const commands = {
   deploy: {
     command: "deploy",
     desc: "Deploy files to the datalayer",
     handler: handlers.deployHandler,
+  },
+  web2: {
+    command: "web2",
+    desc: "Run a web2 gateway server to view your datalayer files",
+    handler: web2.runServerHandler,
   },
   init: {
     command: "init",
@@ -49,6 +55,7 @@ async function run() {
     .command(commands.deploy)
     .command(commands.init)
     .command(commands.store)
+    .command(commands.web2)
     .demandCommand(1, "You need at least one command before moving on")
     .help()
     .alias("h", "help")

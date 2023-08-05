@@ -11,6 +11,8 @@ const DEFAULT_CONFIG = {
   default_fee: 300_000_000,
   default_mirror_coin_amount: 300_000_000,
   maximum_rpc_payload_size: 26_214_400,
+  web2_gateway_port: 41410,
+  web2_gateway_host: "localhost",
 };
 
 const getConfig = () => {
