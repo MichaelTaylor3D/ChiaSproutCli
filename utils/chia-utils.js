@@ -51,6 +51,38 @@ const getFeeEstimate = async () => {
   }
 };
 
+function chunkChangeList(array, maxSize) {
+  let result = [];
+  let temp = [];
+  let sizeCounter = 0;
+
+  array.forEach((item) => {
+    const itemSize = Buffer.byteLength(JSON.stringify(item), "utf-8");
+
+    // Check if single item is too big
+    if (itemSize > maxSize) {
+      throw new Error(
+        `Item size ${itemSize} is bigger than maximum size ${maxSize}`
+      );
+    }
+
+    if (sizeCounter + itemSize <= maxSize) {
+      temp.push(item);
+      sizeCounter += itemSize;
+    } else {
+      result.push(temp);
+      temp = [item];
+      sizeCounter = itemSize;
+    }
+  });
+
+  // Push the last chunk to the result
+  if (temp.length > 0) {
+    result.push(temp);
+  }
+
+  return result;
+}
 
 const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
   const { cert, key } = getBaseOptions();
@@ -91,7 +123,7 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
 
       return response.body;
     } catch (error) {
-      console.error(error.message);
+      console.log(error.message);
 
       if (attempt + 1 < maxAttempts) {
         console.error("Retrying...");
@@ -104,4 +136,5 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
 
 module.exports = {
   callAndAwaitBlockchainRPC,
+  chunkChangeList,
 };

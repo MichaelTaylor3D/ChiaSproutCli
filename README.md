@@ -1,16 +1,14 @@
 # Sprout CLI Tool
 
-Sprout is a command-line interface (CLI) tool that helps you manage and interact with your data layer. 
-
-If this tool was useful for you, please consider donating so I can continue building more Chia Datalayer Tools: xch1es9faez5evlvdyfjdjth40fazfm3c9gptds0reuhryf30y3kl67qtcsc83
+Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer.
 
 ## Prerequisites
 
-You will need Node.js installed on your system to run and install Sprout.
+Ensure Node.js is installed on your system to run and install Sprout.
 
 ## Installation
 
-Clone the repository and navigate into the directory, then install the required dependencies:
+Clone the repository, navigate into the directory, and then install the required dependencies:
 
 ```bash
 npm install
@@ -28,41 +26,70 @@ This will create an executable file named "sprout".
 
 The Sprout CLI tool provides the following commands:
 
-### `$ sprout deploy`
-
-Deploys the files in the directory specified in `sprout.config.json` to the data layer. It throws an error if there is no `store_id` specified in the configuration file or if `sprout.config.json` does not exist.
-
 ### `$ sprout init`
 
-Creates a `sprout.config.json` file in the current working directory with the default JSON:
+This command creates a `sprout.config.json` file in the current working directory with the default JSON:
 
 ```json
 {
   "store_id": null,
-  "deploy_dir": "./build"
+  "deploy_dir": "./build",
+  "datalayer_host": "https://localhost:8562",
+  "wallet_host": "https://localhost:9256",
+  "certificate_folder_path": "~/.chia/mainnet/config/ssl",
+  "default_wallet_id": 1,
+  "default_fee": 300000000,
+  "default_mirror_coin_amount": 300000000,
+  "maximum_rpc_payload_size": 26214400
 }
 ```
 
-### `$ sprout create-store`
+### `$ sprout deploy`
 
-Creates a new data layer store and updates the `store_id` value in `sprout.config.json`. If there is an existing `store_id` in the configuration file, it throws an error. It also throws an error if `sprout.config.json` does not exist.
+This command deploys the files in the directory specified in `sprout.config.json` to the data layer. An error will occur if there is no `store_id` specified in the configuration file or if `sprout.config.json` does not exist.
+
+### `$ sprout store create [--new]`
+
+This command creates a new data layer store and updates the `store_id` value in `sprout.config.json`. If an existing `store_id` is present in the configuration file, it throws an error, unless the `--new` flag is passed. An error will also occur if `sprout.config.json` does not exist. 
+
+### `$ sprout store clean`
+
+This command deletes all items from the current store. An error will be thrown if a `store_id` is not specified in `sprout.config.json`.
 
 ### `$ sprout help`
 
-Prints out the available commands in the console.
+This command prints out all available commands in the console.
 
 ## Configuration
 
-Sprout CLI uses a configuration file (`sprout.config.json`) that specifies the data layer store ID (`store_id`) and the directory of files to be deployed (`deploy_dir`).
+The Sprout CLI uses a configuration file (`sprout.config.json`) to specify various settings such as the data layer store ID (`store_id`), the directory of files to be deployed (`deploy_dir`), the data layer host (`datalayer_host`), the wallet host (`wallet_host`), the location of your certificate folder (`certificate_folder_path`), and some default values for wallet ID, fee, mirror coin amount, and RPC payload size.
+
+### Certificate and Key Configuration
+
+Sprout CLI supports environment variable configuration for certificate and key files necessary for communication with a remote data layer. This can be particularly useful when working in a CI pipeline. 
+
+To provide the certificate and key as base64 strings, you can set the following environment variables:
+
+- `CERT_BASE64`
+- `KEY_BASE64`
+
+For example:
+
+```bash
+export CERT_BASE64="your base64 encoded certificate"
+export KEY_BASE64="your base64 encoded key"
+```
+
+If these environment variables are set, Sprout CLI will use these for the certificate and key. Otherwise, it will look for the files at the default location as specified in your `sprout.config.json`.
 
 ## Contribution
 
-Please submit a pull request for any bug fixes or feature additions.
+To contribute to this project, please submit a pull request for any bug fixes or feature additions.
 
 ## License
 
 [MIT](LICENSE)
 
----
+## Support the Project
 
-Replace the `[MIT](LICENSE)` part with your actual license information. If you don't have a license yet, consider adding one. The MIT license is a simple, permissive license that is easy to understand. You can generate a license via GitHub or use online services such as https://choosealicense.com/.
+If you found this tool helpful, consider donating to support the development of more Chia Datalayer Tools: xch1es9faez5evlvdyfjdjth40fazfm3c9gptds0reuhryf30y3kl67qtcsc83

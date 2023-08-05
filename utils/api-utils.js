@@ -8,28 +8,40 @@ const { getConfig } = require("./config-loader");
 const getBaseOptions = () => {
   const CONFIG = getConfig();
   const chiaRoot = getChiaRoot();
-  let certificateFolderPath =
-    CONFIG.CERTIFICATE_FOLDER_PATH || `${chiaRoot}/config/ssl`;
+  let cert, key;
 
-  // If certificateFolderPath starts with "~", replace it with the home directory
-  if (certificateFolderPath.startsWith("~")) {
-    certificateFolderPath = path.join(
-      os.homedir(),
-      certificateFolderPath.slice(1)
+  if (process.env.CERT_BASE64 && process.env.KEY_BASE64) {
+    console.log(`Using cert and key from environment variables.`);
+
+    cert = Buffer.from(process.env.CERT_BASE64, "base64").toString("ascii");
+    key = Buffer.from(process.env.KEY_BASE64, "base64").toString("ascii");
+  } else {
+    let certificateFolderPath =
+      CONFIG.CERTIFICATE_FOLDER_PATH || `${chiaRoot}/config/ssl`;
+
+    // If certificateFolderPath starts with "~", replace it with the home directory
+    if (certificateFolderPath.startsWith("~")) {
+      certificateFolderPath = path.join(
+        os.homedir(),
+        certificateFolderPath.slice(1)
+      );
+    }
+
+    const certFile = path.resolve(
+      `${certificateFolderPath}/data_layer/private_data_layer.crt`
     );
-  }
+    const keyFile = path.resolve(
+      `${certificateFolderPath}/data_layer/private_data_layer.key`
+    );
 
-  const certFile = path.resolve(
-    `${certificateFolderPath}/data_layer/private_data_layer.crt`
-  );
-  const keyFile = path.resolve(
-    `${certificateFolderPath}/data_layer/private_data_layer.key`
-  );
+    cert = fs.readFileSync(certFile);
+    key = fs.readFileSync(keyFile);
+  }
 
   const baseOptions = {
     method: "POST",
-    cert: fs.readFileSync(certFile),
-    key: fs.readFileSync(keyFile),
+    cert,
+    key,
     timeout: 300000,
     CONFIG,
   };
@@ -38,12 +50,12 @@ const getBaseOptions = () => {
 };
 
 function isValidJSON(text) {
-    try {
-        JSON.parse(text);
-        return true;
-    } catch (error) {
-        return false;
-    }
+  try {
+    JSON.parse(text);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function isBase64Image(str) {
@@ -113,7 +125,6 @@ const mimeTypes = {
   ".eot": "application/vnd.ms-fontobject",
   // Include more MIME types as needed
 };
-
 
 module.exports = {
   getBaseOptions,
