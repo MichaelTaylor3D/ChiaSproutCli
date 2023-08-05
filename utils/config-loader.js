@@ -8,8 +8,9 @@ const DEFAULT_CONFIG = {
   wallet_host: "https://localhost:9256",
   certificate_folder_path: "~/.chia/mainnet/config/ssl",
   default_wallet_id: 1,
-  default_fee: 300000000,
-  default_mirror_coin_amount: 300000000,
+  default_fee: 300_000_000,
+  default_mirror_coin_amount: 300_000_000,
+  maximum_rpc_payload_size: 26_214_400,
 };
 
 const getConfig = () => {

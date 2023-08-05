@@ -1,6 +1,6 @@
 # Sprout CLI Tool
 
-Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer.
+Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer. Usig this tool you can easily deploy a directory of files to a Chia DataLayer store.
 
 ## Prerequisites
 
