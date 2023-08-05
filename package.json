@@ -1,6 +1,6 @@
 {
   "name": "chia-sprout-cli",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "CLI tool to deploy a website on datalayer",
   "main": "index.js",
   "bin": {
@@ -18,7 +18,11 @@
     "assets": "public/**/*"
   },
   "author": "Michael Taylor",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MichaelTaylor3D/ChiaSproutCli.git"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
