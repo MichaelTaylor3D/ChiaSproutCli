@@ -1,14 +1,21 @@
 # Sprout CLI Tool
 
-Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer on the Chia Blockchain. Using this tool, you can easily deploy a directory of files to a Chia DataLayer store. 
+Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer.
 
-To function correctly, Sprout requires the [Chia Blockchain](https://www.chia.net/) to be installed on your machine, as well as a running Wallet and DataLayer. 
+## Support the Project
+
+If you found this tool helpful, consider donating to support the development of more Chia Datalayer Tools. 
+
+**Donation address:** `xch1es9faez5evlvdyfjdjth40fazfm3c9gptds0reuhryf30y3kl67qtcsc83`
+
+Your support is greatly appreciated!
+
+## Disclaimer
+Sprout is provided "as is", without warranty of any kind, express or implied. In no event shall the developers or contributors be liable for any claim, damages or other liability arising from, out of, or in connection with the tool or the use of the tool. The user assumes the responsibility for any loss of data that may occur due to the use of this tool.
 
 ## Prerequisites
 
-- Ensure [Node.js](https://nodejs.org/) is installed on your system to run and install Sprout.
-- The [Chia Blockchain](https://www.chia.net/) needs to be installed and set up on your machine. [Here](https://github.com/Chia-Network/chia-blockchain/wiki/INSTALL) is a guide on how to install it.
-- Your Chia Wallet and DataLayer need to be running. Refer to the Chia documentation for instructions on how to start them up.
+Ensure Node.js is installed on your system to run and install Sprout.
 
 ## Installation
 
@@ -93,7 +100,3 @@ To contribute to this project, please submit a pull request for any bug fixes or
 ## License
 
 [MIT](LICENSE)
-
-## Support the Project
-
-If you found this tool helpful, consider donating to support the development of more Chia Datalayer Tools: xch1es9faez5evlvdyfjdjth40fazfm3c9gptds0reuhryf30y3kl67qtcsc83
