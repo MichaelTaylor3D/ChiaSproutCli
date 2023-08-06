@@ -17,7 +17,33 @@ Sprout is provided "as is", without warranty of any kind, express or implied. In
 
 Ensure Node.js is installed on your system to run and install Sprout.
 
-## Installation
+## Quickstart
+In order to use the tool, you must have Chia Wallet and Chia DataLayer running. You also need some mojos in order to cover the fees when creating datalayer transactions such as creating a new store and pushing data to the datalayer. Sprout works best when installed as a global npm package.
+
+1. Install `chia-sprout-cli` globally by running:
+    ```
+    $ npm install chia-sprout-cli -g
+    ```
+2. Navigate to your project directory and initialize your project:
+    ```
+    $ sprout init
+    ```
+    This creates a `sprout.config.json` file in your working directory. Review the file to make sure the configuration works with your setup.
+3. Create a new store:
+    ```
+    $ sprout store create
+    ```
+4. Deploy your project to datalayer:
+    ```
+    $ sprout deploy
+    ```
+5. View your files in the browser:
+    ```
+    $ sprout web2
+    ```
+    Your store will now be viewable at `https://localhost:41410/<store_id>`.
+
+## Compile Binary
 
 Clone the repository, navigate into the directory, and then install the required dependencies:
 
