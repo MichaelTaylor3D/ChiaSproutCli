@@ -146,8 +146,6 @@ app.get("/:storeId", async (req, res) => {
       storeId,
     });
 
-    console.log("!!!!!!!!!", dataLayerResponse);
-
     const apiResponse = dataLayerResponse.keys.map((key) =>
       hexUtils.decodeHex(key)
     );
