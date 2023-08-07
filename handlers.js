@@ -2,15 +2,14 @@ const fs = require("fs-extra");
 const path = require("path");
 const wallet = require("./rpcs/wallet");
 const { encodeHex } = require("./utils/hex-utils");
+const { callAndAwaitBlockchainRPC } = require("./utils/chia-utils");
 const {
   getConfig,
   CONFIG_FILENAME,
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
-const {
-  callAndAwaitBlockchainRPC,
-  chunkChangeList,
-} = require("./utils/chia-utils");
+
+const changeListChunker = require("chia-changelist-chunks");
 
 async function deployHandler() {
   const config = getConfig();
@@ -41,22 +40,39 @@ async function deployHandler() {
     config.store_id
   );
 
+  changeListChunker.configure(config);
+
   // Break up changelist into chunks due to limit in datalayer payload size
-  const chunkedChangelist = chunkChangeList(
-    changelist,
-    config.maximum_rpc_payload_size
+  const chunkedChangelist = await changeListChunker.chunkChangeList(
+    config.store_id,
+    changelist
   );
 
   console.log(
     `Pushing files to datalayer in ${chunkedChangelist.length} transaction(s).`
   );
 
+  if (chunkedChangelist.length > 1) {
+    console.log(
+      "There are multiple transactions due to the size of the changelist, this operation may take a while to complete."
+    );
+  }
+
+  let chunkCounter = 1;
   // Send each chunk in separate transactions
   for (const chunk of chunkedChangelist) {
+    console.log(
+      `Sending chunk #${chunkCounter} of ${
+        chunkedChangelist.length
+      } to datalayer. Size ${Buffer.byteLength(JSON.stringify(chunk), "utf-8")}`
+    );
+
     await callAndAwaitBlockchainRPC(`${config.datalayer_host}/batch_update`, {
       changelist: chunk,
       id: config.store_id,
     });
+
+    chunkCounter++;
   }
 
   console.log("Deploy operation completed successfully.");
@@ -133,9 +149,12 @@ async function cleanStoreHandler() {
 
   // Given the limit to the payload that can be sent to the datalayer,
   // break up the changelist into chunks and send them in separate transactions
-  const chunkedChangelist = chunkChangeList(
-    changelist,
-    config.maximum_rpc_payload_size
+  changeListChunker.configure(config);
+
+  // Break up changelist into chunks due to limit in datalayer payload size
+  const chunkedChangelist = await changeListChunker.chunkChangeList(
+    config.store_id,
+    changelist
   );
 
   console.log(

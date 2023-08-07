@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const stream = require("stream");
 
 const wallet = require("./rpcs/wallet");
 const datalayer = require("./rpcs/datalayer");
@@ -15,20 +16,7 @@ const { getConfig } = require("./utils/config-loader");
 
 app.use(cors());
 
-app.use((req, res, next) => {
-  let pathname = decodeURIComponent(req.path);
-
-  if (pathname.startsWith("/chia:")) {
-    // Remove 'chia:' from the start
-    let newPath = pathname.replace("/chia:", "");
-
-    // Redirect to the new path
-    res.redirect(newPath);
-  } else {
-    // If the path does not start with 'chia:', proceed as normal
-    next();
-  }
-});
+const multipartCache = {};
 
 app.get("/", async (req, res) => {
   return res.json({
@@ -78,10 +66,44 @@ app.get("/:storeId/*", async (req, res) => {
     }
 
     const value = hexUtils.decodeHex(dataLayerResponse.value);
-
     const fileExtension = getFileExtension(key);
 
-    if (fileExtension) {
+    if (isValidJSON(value) && JSON.parse(value)?.type === "multipart") {
+      const mimeType = mimeTypes[fileExtension] || "application/octet-stream";
+      let multipartFileNames = JSON.parse(value).parts;
+      const cacheKey = multipartFileNames.sort().join(",");
+
+      multipartFileNames = multipartFileNames.sort((a, b) => {
+        const numberA = parseInt(a.split(".part")[1]);
+        const numberB = parseInt(b.split(".part")[1]);
+        return numberA - numberB;
+      });
+
+      if (multipartCache[cacheKey]) {
+        console.log("Serving from cache");
+        res.setHeader("Content-Type", mimeType);
+        return res.end(multipartCache[cacheKey]);
+      }
+
+      const hexPartsPromises = multipartFileNames.map((fileName) => {
+        console.log(`Stitching ${fileName}`);
+        const hexKey = hexUtils.encodeHex(fileName);
+        return datalayer.getValue({
+          storeId,
+          key: hexKey,
+        });
+      });
+
+      const dataLayerResponses = await Promise.all(hexPartsPromises);
+      const hexParts = dataLayerResponses.map((response) => response.value);
+
+      const resultHex = hexParts.join("");
+      const resultBuffer = Buffer.from(resultHex, "hex");
+      multipartCache[cacheKey] = resultBuffer;
+
+      res.setHeader("Content-Type", mimeType);
+      return res.end(resultBuffer);
+    } else if (fileExtension) {
       const mimeType = mimeTypes[fileExtension] || "application/octet-stream";
       res.setHeader("Content-Type", mimeType);
       return res.send(value);
@@ -99,6 +121,7 @@ app.get("/:storeId/*", async (req, res) => {
       return res.send(value);
     }
   } catch (error) {
+    console.log(error);
     // If the key is not found and the store is empty we want to redirect the user to the store
     // This adds support for SPA's hosted on datalayer
     res.location(`/${storeId}`);
@@ -123,6 +146,8 @@ app.get("/:storeId", async (req, res) => {
     const dataLayerResponse = await datalayer.getkeys({
       storeId,
     });
+
+    console.log("!!!!!!!!!", dataLayerResponse);
 
     const apiResponse = dataLayerResponse.keys.map((key) =>
       hexUtils.decodeHex(key)
@@ -153,13 +178,15 @@ app.get("/:storeId", async (req, res) => {
 
 function runServerHandler() {
   const config = getConfig();
-  console.log(`Starting web2 gateway server on port ${config.web2_gateway_port}`);
+  console.log(
+    `Starting web2 gateway server on port ${config.web2_gateway_port}`
+  );
   app.listen(config.web2_gateway_port, config.web2_gateway_host, () => {
     console.log(
       `DataLayer Web2 Gateway Server running, go to http://localhost:${config.web2_gateway_port} to view your datalayer`
     );
   });
-};
+}
 
 module.exports = {
   runServerHandler,

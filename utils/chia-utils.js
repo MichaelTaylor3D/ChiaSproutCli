@@ -51,39 +51,6 @@ const getFeeEstimate = async () => {
   }
 };
 
-function chunkChangeList(array, maxSize) {
-  let result = [];
-  let temp = [];
-  let sizeCounter = 0;
-
-  array.forEach((item) => {
-    const itemSize = Buffer.byteLength(JSON.stringify(item), "utf-8");
-
-    // Check if single item is too big
-    if (itemSize > maxSize) {
-      throw new Error(
-        `Item size ${itemSize} is bigger than maximum size ${maxSize}`
-      );
-    }
-
-    if (sizeCounter + itemSize <= maxSize) {
-      temp.push(item);
-      sizeCounter += itemSize;
-    } else {
-      result.push(temp);
-      temp = [item];
-      sizeCounter = itemSize;
-    }
-  });
-
-  // Push the last chunk to the result
-  if (temp.length > 0) {
-    result.push(temp);
-  }
-
-  return result;
-}
-
 const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
   const { cert, key } = getBaseOptions();
 
@@ -99,7 +66,7 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
 
     console.log(
       `Calling Chia RPC... ${JSON.stringify({
-        url
+        url,
       })}`
     );
 
@@ -113,8 +80,19 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
         .agent(new https.Agent({ rejectUnauthorized: false }));
 
       if (!response.body.success) {
+        if (
+          response.body.error ===
+          "Changelist resulted in no change to tree data"
+        ) {
+          return { success: true, message: response.body.error };
+        }
+
+        if (response.body.error.includes("non-hexadecimal number")) {
+          console.log(params);
+        }
+
         throw new Error(
-          `FAILED: Calling Chia RPC: ${url} ${JSON.stringify(response.body)}`
+          `FAILED: Calling Chia RPC: ${url} ${JSON.stringify(response.body)}}}`
         );
       }
 
@@ -123,18 +101,17 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
 
       return response.body;
     } catch (error) {
-      console.log(error.message);
-
-      if (attempt + 1 < maxAttempts) {
+      console.log(error);
+      return { success: false, error: error.message };
+      /*if (attempt + 1 < maxAttempts) {
         console.error("Retrying...");
       } else {
         throw error;
-      }
+      }*/
     }
   }
 };
 
 module.exports = {
-  callAndAwaitBlockchainRPC,
-  chunkChangeList,
+  callAndAwaitBlockchainRPC
 };

@@ -1,7 +1,6 @@
 const superagent = require("superagent");
 const { getBaseOptions } = require("../utils/api-utils");
-
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+const https = require("https");
 
 const walletIsSynced = async () => {
   try {
@@ -12,7 +11,8 @@ const walletIsSynced = async () => {
       .send({})
       .key(key)
       .cert(cert)
-      .timeout(timeout);
+      .timeout(timeout)
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = JSON.parse(response.text);
 
@@ -41,7 +41,8 @@ const getWalletBalance = async (options) => {
       })
       .key(key)
       .cert(cert)
-      .timeout(timeout);
+      .timeout(timeout)
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     if (response.text) {
       const data = JSON.parse(response.text);
@@ -77,7 +78,8 @@ const hasUnconfirmedTransactions = async (options) => {
     })
     .key(key)
     .cert(cert)
-    .timeout(timeout);
+    .timeout(timeout)
+    .agent(new https.Agent({ rejectUnauthorized: false }));
 
   const data = JSON.parse(response.text);
 
@@ -107,7 +109,8 @@ const getPublicAddress = async (options) => {
     })
     .key(key)
     .cert(cert)
-    .timeout(timeout);
+    .timeout(timeout)
+    .agent(new https.Agent({ rejectUnauthorized: false }));
 
   const data = JSON.parse(response.text);
 
@@ -128,7 +131,8 @@ const getActiveNetwork = async () => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send(JSON.stringify({}));
+      .send(JSON.stringify({}))
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 

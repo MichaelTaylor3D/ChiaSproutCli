@@ -1,6 +1,7 @@
 const superagent = require("superagent");
 const wallet = require("./wallet");
 const { getBaseOptions } = require("../utils/api-utils");
+const https = require("https");
 
 const getMirrors = async (storeId) => {
   const { cert, key, timeout, CONFIG } = getBaseOptions();
@@ -12,7 +13,8 @@ const getMirrors = async (storeId) => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send({ id: storeId });
+      .send({ id: storeId })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -54,7 +56,8 @@ const addMirror = async (storeId, url, forceAddMirror = false) => {
       .key(key)
       .cert(cert)
       .send(options)
-      .timeout(timeout);
+      .timeout(timeout)
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -92,7 +95,8 @@ const removeMirror = async (storeId, coinId) => {
       .send({
         id: coinId,
         fee: CONFIG.default_fee,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -120,7 +124,8 @@ const getRootDiff = async (storeId, root1, root2) => {
         id: storeId,
         hash_1: root1,
         hash_2: root2,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -146,7 +151,8 @@ const getRootHistory = async (storeId) => {
       .timeout(timeout)
       .send({
         id: storeId,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -173,7 +179,8 @@ const unsubscribeFromDataLayerStore = async (storeId) => {
       .send({
         id: storeId,
         fee: CONFIG.default_fee,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -197,7 +204,8 @@ const dataLayerAvailable = async () => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send({});
+      .send({})
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -231,7 +239,8 @@ const getStoreData = async (storeId, rootHash) => {
         .key(key)
         .cert(cert)
         .timeout(timeout)
-        .send(payload);
+        .send(payload)
+        .agent(new https.Agent({ rejectUnauthorized: false }));
 
       const data = response.body;
 
@@ -256,7 +265,8 @@ const getRoot = async (storeId, ignoreEmptyStore = false) => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send({ id: storeId });
+      .send({ id: storeId })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -285,7 +295,8 @@ const getRoots = async (storeIds) => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send({ ids: storeIds });
+      .send({ ids: storeIds })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -315,11 +326,10 @@ const pushChangeListToDataLayer = async (storeId, changelist) => {
         changelist,
         id: storeId,
         fee: CONFIG.default_fee,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
-
-    console.log(data);
 
     if (data.success) {
       return true;
@@ -343,7 +353,6 @@ const createDataLayerStore = async () => {
   const url = `${CONFIG.datalayer_host}/create_data_store`;
 
   try {
-    console.log('!')
     const response = await superagent
       .post(url)
       .key(key)
@@ -351,8 +360,9 @@ const createDataLayerStore = async () => {
       .timeout(timeout)
       .send({
         fee: CONFIG.default_fee,
-      });
-console.log('!!')
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
+
     const data = response.body;
 
     if (data.success) {
@@ -397,7 +407,8 @@ const subscribeToStoreOnDataLayer = async (storeId) => {
       .send({
         id: storeId,
         fee: CONFIG.default_fee,
-      });
+      })
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -428,7 +439,8 @@ const getSubscriptions = async () => {
       .key(key)
       .cert(cert)
       .timeout(timeout)
-      .send({});
+      .send({})
+      .agent(new https.Agent({ rejectUnauthorized: false }));
 
     const data = response.body;
 
@@ -463,11 +475,12 @@ const getValue = async ({ storeId, key, rootHash }) => {
         .key(sslKey)
         .cert(cert)
         .timeout(timeout)
-        .send(payload);
+        .send(payload)
+        .agent(new https.Agent({ rejectUnauthorized: false }));
 
       const data = response.body;
 
-      console.log(payload, data);
+      //console.log(payload, data);
 
       if (data.success) {
         return data;
@@ -496,7 +509,8 @@ const getkeys = async ({ storeId }) => {
         .key(sslKey)
         .cert(cert)
         .timeout(timeout)
-        .send(payload);
+        .send(payload)
+        .agent(new https.Agent({ rejectUnauthorized: false }));
 
       const data = response.body;
 
