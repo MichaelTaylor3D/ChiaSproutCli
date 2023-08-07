@@ -61,7 +61,7 @@ app.get("/:storeId/*", async (req, res) => {
     });
 
     if (!dataLayerResponse) {
-      throw new Error("Key not found");
+      throw new Error(`Key not found ${key}`);
     }
 
     const value = hexUtils.decodeHex(dataLayerResponse.value);
