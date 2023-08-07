@@ -51,18 +51,25 @@ const getFeeEstimate = async () => {
   }
 };
 
-const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
+const callAndAwaitBlockchainRPC = async (
+  url,
+  params,
+  includeFee = true,
+  maxAttempts = 10
+) => {
   const { cert, key } = getBaseOptions();
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     await wallet.walletIsSynced();
     await wallet.waitForAllTransactionsToConfirm();
 
-    const feeEstimate = await getFeeEstimate();
     const body = {
       ...params,
-      fee: feeEstimate || 300000000,
     };
+
+    if (includeFee) {
+      body.fee = await getFeeEstimate();
+    }
 
     console.log(
       `Calling Chia RPC... ${JSON.stringify({
@@ -113,5 +120,5 @@ const callAndAwaitBlockchainRPC = async (url, params, maxAttempts = 10) => {
 };
 
 module.exports = {
-  callAndAwaitBlockchainRPC
+  callAndAwaitBlockchainRPC,
 };

@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const stream = require("stream");
 
 const wallet = require("./rpcs/wallet");
 const datalayer = require("./rpcs/datalayer");

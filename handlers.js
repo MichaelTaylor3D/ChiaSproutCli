@@ -186,7 +186,8 @@ async function walkDirAndCreateChangeList(
         `${config.datalayer_host}/get_keys`,
         {
           id: config.store_id,
-        }
+        },
+        false
       );
     } catch {
       existingKeys = { keys: [] };
