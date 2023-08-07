@@ -480,8 +480,6 @@ const getValue = async ({ storeId, key, rootHash }) => {
 
       const data = response.body;
 
-      //console.log(payload, data);
-
       if (data.success) {
         return data;
       }

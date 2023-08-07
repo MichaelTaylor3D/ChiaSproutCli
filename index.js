@@ -14,7 +14,7 @@ const commands = {
   web2: {
     command: "web2",
     desc: "Run a web2 gateway server to view your datalayer files",
-    handler: web2.runServerHandler,
+    handler: web2.start,
   },
   init: {
     command: "init",
