@@ -515,7 +515,6 @@ const getkeys = async ({ storeId }) => {
       const data = response.body;
 
       if (data.success) {
-        console.log(data);
         return data;
       }
     } catch (error) {
