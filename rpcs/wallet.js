@@ -26,10 +26,6 @@ const walletIsSynced = async () => {
   }
 };
 
-const walletIsAvailable = async () => {
-  return await walletIsSynced();
-};
-
 const getWalletBalance = async (options) => {
   try {
     const { cert, key, timeout, CONFIG } = getBaseOptions();
@@ -98,60 +94,9 @@ const hasUnconfirmedTransactions = async (options) => {
   return false;
 };
 
-const getPublicAddress = async (options) => {
-  const { cert, key, timeout, CONFIG } = getBaseOptions();
-
-  const response = await superagent
-    .post(`${CONFIG.wallet_host}/get_next_address`)
-    .send({
-      wallet_id: options?.walletId || CONFIG.default_wallet_id,
-      new_address: options?.newAddress,
-    })
-    .key(key)
-    .cert(cert)
-    .timeout(timeout)
-    .agent(new https.Agent({ rejectUnauthorized: false }));
-
-  const data = JSON.parse(response.text);
-
-  if (data.success) {
-    return data.address;
-  }
-
-  return false;
-};
-
-const getActiveNetwork = async () => {
-  const { cert, key, timeout, CONFIG } = getBaseOptions();
-  const url = `${CONFIG.wallet_host}/get_network_info`;
-
-  try {
-    const response = await superagent
-      .post(url)
-      .key(key)
-      .cert(cert)
-      .timeout(timeout)
-      .send(JSON.stringify({}))
-      .agent(new https.Agent({ rejectUnauthorized: false }));
-
-    const data = response.body;
-
-    if (data.success) {
-      return data;
-    }
-
-    return false;
-  } catch (error) {
-    return false;
-  }
-};
-
 module.exports = {
   hasUnconfirmedTransactions,
   walletIsSynced,
-  walletIsAvailable,
-  getPublicAddress,
   getWalletBalance,
   waitForAllTransactionsToConfirm,
-  getActiveNetwork,
 };

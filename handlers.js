@@ -1,15 +1,14 @@
 const fs = require("fs-extra");
 const path = require("path");
+const changeListGenerator = require("chia-changelist-generator");
 const wallet = require("./rpcs/wallet");
 const { encodeHex } = require("./utils/hex-utils");
-const { callAndAwaitBlockchainRPC } = require("./utils/chia-utils");
+const Datalayer = require("chia-datalayer");
 const {
   getConfig,
   CONFIG_FILENAME,
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
-
-const changeListChunker = require("chia-changelist-chunks");
 
 async function deployHandler() {
   const config = getConfig();
@@ -35,17 +34,18 @@ async function deployHandler() {
     return;
   }
 
-  const changelist = await walkDirAndCreateChangeList(
+  changeListGenerator.configure(config);
+
+  const fileList = await walkDirAndCreateFileList(
     config.deploy_dir,
     config.store_id
   );
 
-  changeListChunker.configure(config);
-
-  // Break up changelist into chunks due to limit in datalayer payload size
-  const chunkedChangelist = await changeListChunker.chunkChangeList(
+  const chunkedChangelist = await changeListGenerator.generateChangeList(
     config.store_id,
-    changelist
+    "insert",
+    fileList,
+    { chunkChangeList: true }
   );
 
   console.log(
@@ -59,6 +59,9 @@ async function deployHandler() {
   }
 
   let chunkCounter = 1;
+
+  const datalayer = Datalayer.rpc(config);
+
   // Send each chunk in separate transactions
   for (const chunk of chunkedChangelist) {
     console.log(
@@ -67,10 +70,7 @@ async function deployHandler() {
       } to datalayer. Size ${Buffer.byteLength(JSON.stringify(chunk), "utf-8")}`
     );
 
-    await callAndAwaitBlockchainRPC(`${config.datalayer_host}/batch_update`, {
-      changelist: chunk,
-      id: config.store_id,
-    });
+    await datalayer.updateDataStore({ id: config.store_id, changelist: chunk });
 
     chunkCounter++;
   }
@@ -109,10 +109,9 @@ async function createStoreHandler(isNew = false) {
   console.log(
     "Creating new store, please wait for the transaction to complete"
   );
-  const response = await callAndAwaitBlockchainRPC(
-    `${config.datalayer_host}/create_data_store`,
-    {}
-  );
+
+  const datalayer = Datalayer.rpc(config);
+  const response = await datalayer.createDataStore();
 
   if (!response.success) {
     console.error("Failed to create new store");
@@ -142,19 +141,16 @@ async function cleanStoreHandler() {
     return;
   }
 
-  const changelist = await walkDirAndCreateChangeListToClearStore(
-    config.deploy_dir,
-    config.store_id
-  );
+  const datalayer = Datalayer.rpc(config);
+  changeListGenerator.configure(config);
 
-  // Given the limit to the payload that can be sent to the datalayer,
-  // break up the changelist into chunks and send them in separate transactions
-  changeListChunker.configure(config);
+  const fileList = await datalayer.getKeys({ id: config.store_id });
 
-  // Break up changelist into chunks due to limit in datalayer payload size
-  const chunkedChangelist = await changeListChunker.chunkChangeList(
+  const chunkedChangelist = await changeListGenerator.generateChangeList(
     config.store_id,
-    changelist
+    "delete",
+    fileList.keys.map((key) => ({ key })),
+    { chunkChangeList: true }
   );
 
   console.log(
@@ -162,114 +158,49 @@ async function cleanStoreHandler() {
   );
 
   for (const chunk of chunkedChangelist) {
-    await callAndAwaitBlockchainRPC(`${config.datalayer_host}/batch_update`, {
-      changelist: chunk,
+    await datalayer.updateDataStore({
       id: config.store_id,
+      changelist: chunk,
     });
   }
 
   console.log("Done deleting items from store.");
 }
 
-async function walkDirAndCreateChangeList(
+async function walkDirAndCreateFileList(
   dirPath,
   storeId,
   existingKeys,
   rootDir = dirPath
 ) {
-  const config = getConfig();
   const files = fs.readdirSync(dirPath);
 
-  if (!existingKeys) {
-    try {
-      existingKeys = await callAndAwaitBlockchainRPC(
-        `${config.datalayer_host}/get_keys`,
-        {
-          id: config.store_id,
-        },
-        false
-      );
-    } catch {
-      existingKeys = { keys: [] };
-    }
-  }
-
-  let changelist = [];
+  let fileList = [];
 
   for (const file of files) {
     const filePath = path.join(dirPath, file);
 
     if (fs.statSync(filePath).isDirectory()) {
-      const subdirChangeList = await walkDirAndCreateChangeList(
+      const subdirChangeList = await walkDirAndCreateFileList(
         filePath,
         storeId,
         existingKeys,
-        rootDir // Pass rootDir to the recursive function call
+        rootDir
       );
-      changelist.push(...subdirChangeList);
+      fileList.push(...subdirChangeList);
     } else {
       const relativeFilePath = path.relative(rootDir, filePath);
       const contentBuffer = fs.readFileSync(filePath);
       const content = contentBuffer.toString("hex");
 
-      if (existingKeys?.keys?.length > 0) {
-        const existingKey = existingKeys.keys.find(
-          (key) => key === `0x${encodeHex(relativeFilePath)}`
-        );
-
-        if (existingKey) {
-          console.log(`Updating existing key ${relativeFilePath}`);
-          changelist.push({
-            action: "delete",
-            key: existingKey,
-          });
-        } else {
-          console.log(`Inserting new key ${relativeFilePath}`);
-        }
-      }
-
-      changelist.push({
-        action: "insert",
+      fileList.push({
         key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
         value: content,
       });
     }
   }
 
-  return changelist;
-}
-
-async function walkDirAndCreateChangeListToClearStore(
-  dirPath,
-  storeId,
-  rootDir = dirPath
-) {
-  const files = fs.readdirSync(dirPath);
-  let changelist = [];
-
-  for (const file of files) {
-    const filePath = path.join(dirPath, file);
-
-    if (fs.statSync(filePath).isDirectory()) {
-      const subdirChangeList = await walkDirAndCreateChangeListToClearStore(
-        filePath,
-        storeId,
-        rootDir // Pass rootDir to the recursive function call
-      );
-      changelist.push(...subdirChangeList);
-    } else {
-      const relativeFilePath = path.relative(rootDir, filePath);
-
-      console.log(`Deleting Key ${relativeFilePath}`);
-
-      changelist.push({
-        action: "delete",
-        key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
-      });
-    }
-  }
-
-  return changelist;
+  return fileList;
 }
 
 module.exports = {
