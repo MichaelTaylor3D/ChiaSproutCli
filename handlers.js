@@ -121,11 +121,6 @@ async function mirrorStoreHandler() {
       return;
     }
 
-    if (!(await wallet.walletIsSynced())) {
-      logError("The wallet is not synced. Please sync and try again.");
-      return;
-    }
-
     datalayerMirror.configure(config);
     const response = await datalayerMirror.addMirrorForCurrentHost(config.store_id);
 
