@@ -4,7 +4,7 @@ const changeListGenerator = require("chia-changelist-generator");
 const wallet = require("./rpcs/wallet");
 const { encodeHex } = require("./utils/hex-utils");
 const Datalayer = require("chia-datalayer");
-const { getChiaConfig } = require("chia-config-loader");
+const datalayerMirror = require("chia-datalayer-mirror-tools");
 const {
   getConfig,
   CONFIG_FILENAME,
@@ -113,11 +113,8 @@ function initHandler() {
 
 async function mirrorStoreHandler() {
   try {
-    const { publicIpv4 } = require("./utils/ip-utils");
-    const ip = await publicIpv4();
-
+    await wallet.waitForAllTransactionsToConfirm();
     const config = getConfig();
-    const datalayer = Datalayer.rpc(config);
 
     if (!config.store_id) {
       logError("No store_id specified in sprout.config.json");
@@ -129,26 +126,10 @@ async function mirrorStoreHandler() {
       return;
     }
 
-    if (!ip) {
-      logError("Could not determine public IP address");
-      return;
-    }
+    datalayerMirror.configure(config);
+    const response = await datalayerMirror.addMirrorForCurrentHost(config.store_id);
 
-    const chiaConfig = getChiaConfig();
-
-    const port = chiaConfig.data_layer.host_port;
-
-    const url = `http://${ip}:${port}`;
-
-    logInfo(`Adding mirror ${url} to store ${config.store_id}`);
-
-    const response = await datalayer.addMirror({
-      id: config.store_id,
-      urls: [url],
-      amount: config.default_mirror_coin_amount,
-    });
-
-    if (!response.success) {
+    if (response.success === false) {
       logError("Failed to add mirror");
       return;
     }
