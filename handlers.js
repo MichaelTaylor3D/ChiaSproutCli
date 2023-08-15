@@ -91,6 +91,58 @@ function initHandler() {
   }
 }
 
+async function mirrorStoreHandler() {
+  const { publicIpv4 } = require("./utils/ip-utils");
+  const ip = await publicIpv4();
+
+  const config = getConfig();
+  const datalayer = Datalayer.rpc(config);
+
+  if (!config.store_id) {
+    console.error("No store_id specified in sprout.config.json");
+    return;
+  }
+
+  if (!(await wallet.walletIsSynced())) {
+    console.error("The wallet is not synced. Please sync and try again.");
+    return;
+  }
+
+  if (!ip) {
+    console.error("Could not determine public IP address");
+    return;
+  }
+
+  const regex = /http(s)?:\/\/[^:]+:(\d+)/;
+  const match = config.datalayer_host.match(regex);
+
+  if (match && match[2]) {
+    const port = match[2];
+
+    if (!port) {
+      console.error("Could not determine port from URL");
+      return;
+    }
+
+    const url = `http://${ip}:${port}`;
+
+    console.log(`Adding mirror ${url} to store ${config.store_id}`);
+
+    const response = await datalayer.addMirror({
+      id: config.store_id,
+      urls: [url],
+      amount: config.default_mirror_coin_amount,
+    });
+
+    if (!response.success) {
+      console.error("Failed to add mirror");
+      return;
+    }
+
+    console.log("Mirror added successfully");
+  }
+}
+
 async function createStoreHandler(isNew = false) {
   const config = getConfig();
 
@@ -208,4 +260,5 @@ module.exports = {
   initHandler,
   createStoreHandler,
   cleanStoreHandler,
+  mirrorStoreHandler,
 };

@@ -29,7 +29,7 @@ const commands = {
         .positional("action", {
           describe: "Action to perform on the store",
           type: "string",
-          choices: ["create", "clean"],
+          choices: ["create", "clean", "mirror"],
         })
         .option("new", {
           alias: "n",
@@ -43,6 +43,8 @@ const commands = {
         await handlers.createStoreHandler(argv.new);
       } else if (argv.action === "clean") {
         await handlers.cleanStoreHandler();
+      } else if (argv.action === "mirror") {
+        await handlers.mirrorStoreHandler();
       } else {
         console.error("Unknown store action");
       }
