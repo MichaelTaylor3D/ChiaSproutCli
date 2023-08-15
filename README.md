@@ -46,7 +46,7 @@ In order to use the tool, you must have Chia Wallet and Chia DataLayer running. 
    Your store will now be viewable at `https://localhost:41410/<store_id>`.
 
 ## Mirroring Your Datastore
-To create a local mirror allowing others to subscribe to your store, follow these steps:
+To create a local mirror allowing others to subscribe to your store (aka make your store public), follow these steps:
 
 1. Activate the DataLayer File Propagation Server in the Chia UI Settings. This server comes with Chia.
 

@@ -4,6 +4,7 @@ const changeListGenerator = require("chia-changelist-generator");
 const wallet = require("./rpcs/wallet");
 const { encodeHex } = require("./utils/hex-utils");
 const Datalayer = require("chia-datalayer");
+const { getChiaConfig } = require("./utils/chia-config");
 const {
   getConfig,
   CONFIG_FILENAME,
@@ -113,34 +114,26 @@ async function mirrorStoreHandler() {
     return;
   }
 
-  const regex = /http(s)?:\/\/[^:]+:(\d+)/;
-  const match = config.datalayer_host.match(regex);
+  const chiaConfig = getChiaConfig();
 
-  if (match && match[2]) {
-    const port = match[2];
+  const port = chiaConfig.data_layer.host_port;
 
-    if (!port) {
-      console.error("Could not determine port from URL");
-      return;
-    }
+  const url = `http://${ip}:${port}`;
 
-    const url = `http://${ip}:${port}`;
+  console.log(`Adding mirror ${url} to store ${config.store_id}`);
 
-    console.log(`Adding mirror ${url} to store ${config.store_id}`);
+  const response = await datalayer.addMirror({
+    id: config.store_id,
+    urls: [url],
+    amount: config.default_mirror_coin_amount,
+  });
 
-    const response = await datalayer.addMirror({
-      id: config.store_id,
-      urls: [url],
-      amount: config.default_mirror_coin_amount,
-    });
-
-    if (!response.success) {
-      console.error("Failed to add mirror");
-      return;
-    }
-
-    console.log("Mirror added successfully");
+  if (!response.success) {
+    console.error("Failed to add mirror");
+    return;
   }
+
+  console.log("Mirror added successfully");
 }
 
 async function createStoreHandler(isNew = false) {
