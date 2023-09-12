@@ -63,7 +63,7 @@ async function deployHandler() {
 
     let chunkCounter = 1;
 
-    const datalayer = Datalayer.rpc(config);
+    const datalayer = new Datalayer(config);
 
     // Send each chunk in separate transactions
     for (const chunk of chunkedChangelist) {
@@ -155,7 +155,7 @@ async function createStoreHandler(isNew = false) {
 
     logInfo("Creating new store, please wait for the transaction to complete");
 
-    const datalayer = Datalayer.rpc(config);
+    const datalayer = new Datalayer(config);
     const response = await datalayer.createDataStore();
 
     if (!response.success) {
@@ -192,7 +192,7 @@ async function cleanStoreHandler() {
       return;
     }
 
-    const datalayer = Datalayer.rpc(config);
+    const datalayer = new Datalayer(config);
     changeListGenerator.configure(config);
 
     const fileList = await datalayer.getKeys({ id: config.store_id });
