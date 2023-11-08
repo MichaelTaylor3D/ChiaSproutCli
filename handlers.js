@@ -86,6 +86,7 @@ async function deployHandler() {
 
     logInfo("Deploy operation completed successfully.");
   } catch (error) {
+    console.trace(error);
     logError(error.message);
   } finally {
     process.exit();
@@ -131,6 +132,7 @@ async function mirrorStoreHandler() {
 
     logInfo("Mirror added successfully");
   } catch (error) {
+    console.trace(error);
     logError(error.message);
   } finally {
     process.exit();
@@ -172,6 +174,7 @@ async function createStoreHandler(isNew = false) {
     );
     logInfo(`Created new store with id ${storeId}`);
   } catch (error) {
+    console.trace(error);
     logError(error.message);
   } finally {
     process.exit();
@@ -217,6 +220,7 @@ async function cleanStoreHandler() {
 
     logInfo("Done deleting items from store.");
   } catch (error) {
+    console.trace(error);
     logError(error.message);
   } finally {
     process.exit();
