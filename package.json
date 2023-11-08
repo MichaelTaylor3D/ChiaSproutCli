@@ -1,6 +1,6 @@
 {
   "name": "chia-sprout-cli",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "CLI tool to deploy a website on datalayer",
   "main": "index.js",
   "bin": {
@@ -27,7 +27,7 @@
     "chia-changelist-generator": "^1.0.6",
     "chia-config-loader": "^1.0.0",
     "chia-datalayer": "^2.0.8",
-    "chia-datalayer-mirror-tools": "^1.0.10",
+    "chia-datalayer-mirror-tools": "^1.0.11",
     "chia-root-resolver": "^1.0.0",
     "chia-web2-gateway": "^1.0.4",
     "cors": "^2.8.5",
