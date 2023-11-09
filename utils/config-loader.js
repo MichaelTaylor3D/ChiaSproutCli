@@ -13,7 +13,7 @@ const DEFAULT_CONFIG = {
   maximum_rpc_payload_size: 26_214_400,
   web2_gateway_port: 41410,
   web2_gateway_host: "localhost",
-  forceIp4Mirror: false
+  forceIp4Mirror: true
 };
 
 const getConfig = () => {
