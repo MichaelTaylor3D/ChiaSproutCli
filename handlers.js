@@ -123,7 +123,10 @@ async function mirrorStoreHandler() {
     }
 
     datalayerMirror.configure(config);
-    const response = await datalayerMirror.addMirrorForCurrentHost(config.store_id);
+    const response = await datalayerMirror.addMirrorForCurrentHost(
+      config.store_id,
+      config.forceIp4Mirror || false
+    );
 
     if (response.success === false) {
       logError("Failed to add mirror");
