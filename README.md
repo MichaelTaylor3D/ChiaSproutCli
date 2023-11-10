@@ -1,3 +1,38 @@
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <img src="https://gcdnb.pbrd.co/images/tCmMiQG6nPMq.png?o=1" alt="Logo" width="150" height="80">
+  </a>
+
+  <h3 align="center">Best-README-Template</h3>
+
+  <p align="center">
+    An awesome README template to jumpstart your projects!
+    <br />
+    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
+    ·
+    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
+  </p>
+</div>
+</br>
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#quickstart">Quickstart</a></li>
+    <li><a href="#compile-binary-optional">Compile Binary </a></li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#certificate-and-key-configuration">Certs. & Config</a></li>
+    <li><a href="#contribution">Contribution</a></li>
+  </ol>
+</details>
+
 # Sprout CLI Tool
 
 Sprout is a command-line interface (CLI) tool designed to help manage and interact with your data layer.
