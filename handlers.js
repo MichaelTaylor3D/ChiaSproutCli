@@ -11,7 +11,7 @@ const {
 } = require("./utils/config-loader");
 const { checkChiaConfigIpHost, 
   checkFilePropagationServerReachable
-} = require("./connectivity-utils");
+} = require("utils/connectivity-utils");
 
 async function deployHandler() {
   const config = getConfig();
