@@ -69,9 +69,26 @@ const checkChiaConfigIpHost = async () => {
     }
 };
 
-const runTests = async () => {
-    await checkChiaConfigIpHost();
-    await checkFilePropagationServerReachable();
-    return true;
-}
+const runTests = () => {
+    return Promise.all([
+        checkChiaConfigIpHost().then(result => {
+            if (!result) {
+                throw new Error('Chia Config IP Host Check failed');
+            }
+            return result;
+        }),
+        checkFilePropagationServerReachable().then(result => {
+            if (!result) {
+                throw new Error('File Propagation Server Reachability Check failed');
+            }
+            return result;
+        })
+    ])
+    .then(() => true)
+    .catch(error => {
+        console.error('Error in running tests:', error.message);
+        return false;
+    });
+};
+
 module.exports = { checkChiaConfigIpHost, checkFilePropagationServerReachable, getPublicIpv4, runTests };
