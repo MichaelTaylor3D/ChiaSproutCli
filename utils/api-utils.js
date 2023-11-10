@@ -5,6 +5,13 @@ const fs = require("fs");
 const { getChiaRoot } = require("./chia-root");
 const { getConfig } = require("./config-loader");
 
+const { checkChiaConfigIpHost, 
+        checkFilePropagationServerReachable
+      } = require("./connectivity-utils");
+
+console.log("checkChiaConfigIpHost:", checkChiaConfigIpHost);
+console.log("checkFilePropagationServerReachable:", checkFilePropagationServerReachable);
+
 const getBaseOptions = () => {
   const CONFIG = getConfig();
   const chiaRoot = getChiaRoot();
