@@ -2,12 +2,13 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const chiaRootResolver = require('chia-root-resolver');
 const axios = require('axios');
-const publicIpv4 = require('./ip-utils').publicIpv4; // Assuming this is the correct import from ip-utils.js
+const superagent = require("superagent");
+const _ = require("lodash");
 
 const checkFilePropagationServerReachable = async () => {
     try {
-        const ip4 = await publicIpv4({ forceIp4: true });
-        let ip6;
+        const ip4 = await getPublicIpv4(true);
+        const ip6 = await getPublicIpv4();
         try {
             ip6 = await publicIpv4();
         } catch (error) {
@@ -22,6 +23,28 @@ const checkFilePropagationServerReachable = async () => {
         return false;
     }
 };
+
+async function getPublicIpv4(forceIp4 = false) {
+    const httpsUrls = ["https://icanhazip.com/", "https://api.ipify.org/"];
+    
+    for (const url of httpsUrls) {
+        if (forceIp4 && url === "https://icanhazip.com/") {
+            continue; // Skip this URL if forceIp4 option is set
+        }
+        
+        try {
+            const response = await superagent.get(url);
+            const ip = (response.text || "").trim();
+            if (!_.isEmpty(ip)) {
+                return ip;
+            }
+        } catch (error) {
+            console.error(`Error retrieving IP from ${url}:`, error.message);
+        }
+    }
+
+    throw new Error("Public IPv4 address not found");
+}
 
 const checkChiaConfigIpHost = async () => {
     try {
@@ -47,3 +70,4 @@ const checkChiaConfigIpHost = async () => {
 
 module.exports = { checkChiaConfigIpHost };
 module.exports = { checkFilePropagationServerReachable };
+module.exports = { getPublicIpv4 };
