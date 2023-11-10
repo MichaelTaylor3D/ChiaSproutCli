@@ -1,6 +1,6 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
-const chiaRootResolver = require('chia-root-resolver');
+const { getChiaRoot } = require('chia-root-resolver')
 const superagent = require("superagent");
 const _ = require("lodash");
 
@@ -49,7 +49,7 @@ async function getPublicIpv4(forceIp4 = false) {
 
 const checkChiaConfigIpHost = async () => {
     try {
-        const chiaRoot = await chiaRootResolver();
+        const chiaRoot = getChiaRoot()
         const configFile = `${chiaRoot}/mainnet/config/config.yaml`;
 
         if (!fs.existsSync(configFile)) {
