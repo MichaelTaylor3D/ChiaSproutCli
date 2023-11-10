@@ -9,6 +9,9 @@ const {
   CONFIG_FILENAME,
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
+const { checkChiaConfigIpHost, 
+  checkFilePropagationServerReachable
+} = require("./connectivity-utils");
 
 async function deployHandler() {
   const config = getConfig();
@@ -203,9 +206,45 @@ async function walkDirAndCreateFileList(
   return fileList;
 }
 
+async function checkChiaConfigIpHostHandler() {
+  try {
+      const result = await checkChiaConfigIpHost();
+      console.log(`Chia Config IP Host Check: ${result}`);
+  } catch (error) {
+      console.error('Error in Chia Config IP Host Check. Details:', error.message);
+      console.error(error.stack);
+      // Additional error handling logic, if applicable
+  }
+}
+
+async function checkFilePropagationServerReachableHandler() {
+  let attempts = 0;
+  const maxAttempts = 3; // Retry logic, if applicable
+
+  while (attempts < maxAttempts) {
+      try {
+          const result = await checkFilePropagationServerReachable();
+          console.log(`File Propagation Server Reachability Check: ${result}`);
+          break;
+      } catch (error) {
+          attempts++;
+          console.error(`Attempt ${attempts} - Error in File Propagation Server Reachability Check. Details:`, error.message);
+          console.error(error.stack); // More detailed error logging
+
+          if (attempts >= maxAttempts) {
+              console.error('Max attempts reached. Failing gracefully.');
+              break;
+          }
+      }
+  }
+}
+
+
 module.exports = {
   deployHandler,
   initHandler,
   createStoreHandler,
   cleanStoreHandler,
+  checkChiaConfigIpHostHandler,
+  checkFilePropagationServerReachableHandler
 };
