@@ -69,6 +69,9 @@ const checkChiaConfigIpHost = async () => {
     }
 };
 
-module.exports = { checkChiaConfigIpHost };
-module.exports = { checkFilePropagationServerReachable };
-module.exports = { getPublicIpv4 };
+const runTests = async () => {
+    await checkChiaConfigIpHost();
+    await checkFilePropagationServerReachable();
+    return true;
+}
+module.exports = { checkChiaConfigIpHost, checkFilePropagationServerReachable, getPublicIpv4, runTests };

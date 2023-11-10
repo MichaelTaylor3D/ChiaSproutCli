@@ -10,7 +10,7 @@ const {
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
 const { checkChiaConfigIpHost, 
-  checkFilePropagationServerReachable
+  checkFilePropagationServerReachable,
 } = require("./utils/connectivity-utils");
 
 async function deployHandler() {
@@ -239,6 +239,12 @@ async function checkFilePropagationServerReachableHandler() {
   }
 }
 
+async function runTests(){
+  await checkChiaConfigIpHostHandler();
+  await checkFilePropagationServerReachableHandler();
+  return true;
+}
+
 
 module.exports = {
   deployHandler,
@@ -246,5 +252,6 @@ module.exports = {
   createStoreHandler,
   cleanStoreHandler,
   checkChiaConfigIpHostHandler,
-  checkFilePropagationServerReachableHandler
+  checkFilePropagationServerReachableHandler,
+  runTests
 };

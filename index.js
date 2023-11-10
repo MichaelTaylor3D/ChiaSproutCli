@@ -6,6 +6,11 @@ const handlers = require("./handlers");
 const web2 = require("./server");
 
 const commands = {
+  test: {
+    command: "test",
+    desc: "Test the connection to the datalayer and file propagation server",
+    handler: handlers.runTests,
+  },
   deploy: {
     command: "deploy",
     desc: "Deploy files to the datalayer",
@@ -44,8 +49,7 @@ const commands = {
       } else if (argv.action === "clean") {
         await handlers.cleanStoreHandler();
       } else if (argv.action === "test") {
-        await handlers.checkChiaConfigIpHostHandler();
-        await handlers.checkFilePropagationServerReachableHandler();
+        await handlers.runTests();
       }else {
         console.error("Unknown store action");
       }
