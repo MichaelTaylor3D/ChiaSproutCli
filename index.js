@@ -43,7 +43,10 @@ const commands = {
         await handlers.createStoreHandler(argv.new);
       } else if (argv.action === "clean") {
         await handlers.cleanStoreHandler();
-      } else {
+      } else if (argv.action === "test") {
+        await handlers.checkChiaConfigIpHostHandler();
+        await handlers.checkFilePropagationServerReachableHandler();
+      }else {
         console.error("Unknown store action");
       }
     },
@@ -56,6 +59,7 @@ async function run() {
     .command(commands.init)
     .command(commands.store)
     .command(commands.web2)
+    .command(commands.test)
     .demandCommand(1, "You need at least one command before moving on")
     .help()
     .alias("h", "help")
