@@ -26,6 +26,7 @@
   "dependencies": {
     "chia-changelist-generator": "^1.0.0",
     "chia-datalayer": "^1.0.0",
+    "chia-root-resolver": "^1.0.0",
     "chia-web2-gateway": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
