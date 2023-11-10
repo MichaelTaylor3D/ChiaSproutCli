@@ -1,23 +1,24 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 const chiaRootResolver = require('chia-root-resolver');
-const axios = require('axios');
 const superagent = require("superagent");
 const _ = require("lodash");
 
 const checkFilePropagationServerReachable = async () => {
     try {
         const ip4 = await getPublicIpv4(true);
-        const ip6 = await getPublicIpv4();
+        let ip6;
         try {
-            ip6 = await publicIpv4();
+            ip6 = await getPublicIpv4();
         } catch (error) {
             console.log('IPv6 address not found:', error);
             ip6 = null; // If IPv6 is not available, set it to null
         }
 
-        const response = await axios.post('https://api.datalayer.storage/system/v1/check_server', { ip4, ip6 });
-        return response.data.success;
+        const response = await superagent
+            .post('https://api.datalayer.storage/system/v1/check_server')
+            .send({ ip4, ip6 });
+        return response.body.success;
     } catch (error) {
         console.error('Error in checkFilePropagationServerReachable:', error);
         return false;
