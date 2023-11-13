@@ -133,6 +133,8 @@ async function mirrorStoreHandler() {
       return;
     }
 
+    await wallet.waitForAllTransactionsToConfirm();
+
     logInfo("Mirror added successfully");
   } catch (error) {
     console.trace(error);
