@@ -147,7 +147,7 @@ async function createStoreHandler(isNew = false) {
     const config = getConfig();
 
     if (!isNew && config.store_id !== null) {
-      logError("A store_id already exists in sprout.config.json");
+      logError("A store_id already exists in sprout.config.json, use the -new flag if you want to overwrite it.");
       return;
     }
 
