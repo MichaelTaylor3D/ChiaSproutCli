@@ -1,6 +1,6 @@
 {
   "name": "chia-sprout-cli",
-  "version": "1.2.17",
+  "version": "1.2.18",
   "description": "CLI tool to deploy a website on datalayer",
   "main": "index.js",
   "bin": {
@@ -33,6 +33,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "fs-extra": "^11.1.1",
+    "lodash": "^4.17.21",
     "superagent": "^8.1.2",
     "yargs": "^17.7.2"
   },

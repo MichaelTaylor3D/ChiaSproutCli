@@ -169,12 +169,14 @@ async function createStoreHandler(isNew = false) {
     }
 
     const storeId = response.id;
-
+    await wallet.waitForAllTransactionsToConfirm();
+    
     fs.writeJsonSync(
       CONFIG_FILENAME,
       { ...config, store_id: storeId },
       { spaces: 2 }
     );
+
     logInfo(`Created new store with id ${storeId}`);
   } catch (error) {
     console.trace(error);
