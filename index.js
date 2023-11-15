@@ -7,9 +7,9 @@ const web2 = require("./server");
 
 const commands = {
   test: {
-    command: "test",
+    command: "status",
     desc: "Test the connection to the datalayer and file propagation server",
-    handler: handlers.runTests,
+    handler: handlers.runConnectionCheckHandler,
   },
   deploy: {
     command: "deploy",
@@ -48,8 +48,6 @@ const commands = {
         await handlers.createStoreHandler(argv.new);
       } else if (argv.action === "clean") {
         await handlers.cleanStoreHandler();
-      } else if (argv.action === "test") {
-        await handlers.runTests();
       } else if (argv.action === "mirror") {
         await handlers.mirrorStoreHandler();
       } else {

@@ -11,14 +11,17 @@ const {
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
 
-const { checkChiaConfigIpHost, 
+const {
+  checkChiaConfigIpHost,
   checkFilePropagationServerReachable,
 } = require("./utils/connectivity-utils");
 const { logInfo, logError } = require("./utils/console-tools");
 
-
 async function deployHandler() {
   try {
+    await checkChiaConfigIpHostHandler();
+    await checkFilePropagationServerReachableHandler();
+    
     const config = getConfig();
 
     if (config.store_id === null) {
@@ -154,7 +157,9 @@ async function createStoreHandler(isNew = false) {
     const config = getConfig();
 
     if (!isNew && config.store_id !== null) {
-      logError("A store_id already exists in sprout.config.json, use the -new flag if you want to overwrite it.");
+      logError(
+        "A store_id already exists in sprout.config.json, use the -new flag if you want to overwrite it."
+      );
       return;
     }
 
@@ -177,7 +182,7 @@ async function createStoreHandler(isNew = false) {
 
     const storeId = response.id;
     await wallet.waitForAllTransactionsToConfirm();
-    
+
     fs.writeJsonSync(
       CONFIG_FILENAME,
       { ...config, store_id: storeId },
@@ -277,12 +282,15 @@ async function walkDirAndCreateFileList(
 
 async function checkChiaConfigIpHostHandler() {
   try {
-      const result = await checkChiaConfigIpHost();
-      console.log(`Chia Config IP Host Check: ${result}`);
+    const result = await checkChiaConfigIpHost();
+    console.log(`Chia Config IP Host Check: ${result}`);
   } catch (error) {
-      console.error('Error in Chia Config IP Host Check. Details:', error.message);
-      console.error(error.stack);
-      // Additional error handling logic, if applicable
+    console.error(
+      "Error in Chia Config IP Host Check. Details:",
+      error.message
+    );
+    console.error(error.stack);
+    // Additional error handling logic, if applicable
   }
 }
 
@@ -291,29 +299,36 @@ async function checkFilePropagationServerReachableHandler() {
   const maxAttempts = 3; // Retry logic, if applicable
 
   while (attempts < maxAttempts) {
-      try {
-          const result = await checkFilePropagationServerReachable();
-          console.log(`File Propagation Server Reachability Check: ${result}`);
-          break;
-      } catch (error) {
-          attempts++;
-          console.error(`Attempt ${attempts} - Error in File Propagation Server Reachability Check. Details:`, error.message);
-          console.error(error.stack); // More detailed error logging
+    try {
+      const result = await checkFilePropagationServerReachable();
+      console.log(`File Propagation Server Reachability Check: ${result}`);
+      console.log(`Congrats! Your Local Mirror is Discoverable`);
+      break;
+    } catch (error) {
+      attempts++;
+      console.error(
+        `Attempt ${attempts} - Error in File Propagation Server Reachability Check. Details:`,
+        error.message
+      );
+      console.log(`Oh No!, Your Local Mirror is Not Discoverable`);
+      console.error(error.stack); // More detailed error logging
 
-          if (attempts >= maxAttempts) {
-              console.error('Max attempts reached. Failing gracefully.');
-              break;
-          }
+      if (attempts >= maxAttempts) {
+        console.error("Max attempts reached. Failing gracefully.");
+        break;
       }
+    }
   }
 }
 
-async function runTests(){
-  await checkChiaConfigIpHostHandler();
-  await checkFilePropagationServerReachableHandler();
-  return true;
+async function runConnectionCheckHandler() {
+  try {
+    await checkChiaConfigIpHostHandler();
+    await checkFilePropagationServerReachableHandler();
+  } finally {
+    process.exit();
+  }
 }
-
 
 module.exports = {
   deployHandler,
@@ -322,6 +337,6 @@ module.exports = {
   cleanStoreHandler,
   checkChiaConfigIpHostHandler,
   checkFilePropagationServerReachableHandler,
-  runTests
+  runConnectionCheckHandler,
   mirrorStoreHandler,
 };
