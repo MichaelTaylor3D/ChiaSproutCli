@@ -39,11 +39,17 @@ In order to use the tool, you must have Chia Wallet and Chia DataLayer running. 
    ```
    $ sprout deploy
    ```
-5. View your files in the browser:
+5. Make sure your mirror is discoverable by the peer network
+   ```
+   $ sprout status
+   ```
+
+6. View your files in the browser:
    ```
    $ sprout web2
    ```
    Your store will now be viewable at `https://localhost:41410/<store_id>`.
+
 
 ## Mirroring Your Datastore
 To create a local mirror allowing others to subscribe to your store (aka make your store public), follow these steps:
