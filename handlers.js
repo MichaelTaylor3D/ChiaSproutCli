@@ -21,7 +21,7 @@ async function deployHandler() {
   try {
     await checkChiaConfigIpHostHandler();
     await checkFilePropagationServerReachableHandler();
-    
+
     const config = getConfig();
 
     if (config.store_id === null) {
@@ -284,13 +284,14 @@ async function checkChiaConfigIpHostHandler() {
   try {
     const result = await checkChiaConfigIpHost();
     console.log(`Chia Config IP Host Check: ${result}`);
+    return result;
   } catch (error) {
     console.error(
       "Error in Chia Config IP Host Check. Details:",
       error.message
     );
     console.error(error.stack);
-    // Additional error handling logic, if applicable
+    return false;
   }
 }
 
@@ -302,20 +303,18 @@ async function checkFilePropagationServerReachableHandler() {
     try {
       const result = await checkFilePropagationServerReachable();
       console.log(`File Propagation Server Reachability Check: ${result}`);
-      console.log(`Congrats! Your Local Mirror is Discoverable`);
-      break;
+      return true;
     } catch (error) {
       attempts++;
       console.error(
         `Attempt ${attempts} - Error in File Propagation Server Reachability Check. Details:`,
         error.message
       );
-      console.log(`Oh No!, Your Local Mirror is Not Discoverable`);
       console.error(error.stack); // More detailed error logging
 
       if (attempts >= maxAttempts) {
         console.error("Max attempts reached. Failing gracefully.");
-        break;
+        return false;
       }
     }
   }
@@ -323,8 +322,14 @@ async function checkFilePropagationServerReachableHandler() {
 
 async function runConnectionCheckHandler() {
   try {
-    await checkChiaConfigIpHostHandler();
-    await checkFilePropagationServerReachableHandler();
+    const configSetup = await checkChiaConfigIpHostHandler();
+    const ipVisible = await checkFilePropagationServerReachableHandler();
+
+    if (configSetup && ipVisible) {
+      logInfo(`Congrats! Your Local Mirror is Discoverable`);
+    } else {
+      logError(`Oh No! Your Local Mirror is Not Discoverable`);
+    }
   } finally {
     process.exit();
   }
