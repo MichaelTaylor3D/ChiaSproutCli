@@ -45,6 +45,21 @@ In order to use the tool, you must have Chia Wallet and Chia DataLayer running. 
    ```
    Your store will now be viewable at `https://localhost:41410/<store_id>`.
 
+## Mirroring Your Datastore
+To create a local mirror allowing others to subscribe to your store (aka make your store public), follow these steps:
+
+1. Activate the DataLayer File Propagation Server in the Chia UI Settings. This server comes with Chia.
+
+2. Ensure your firewall permits inbound/outbound traffic on port 8575, the default datalayer port.
+
+3. If necessary, forward local router port 8575->8575. (Instructions vary by router.)
+
+4. Run the following command using the sprout tool:
+   ```
+   sprout store mirror
+   ```
+   This command automatically creates a mirror from the store in your sprout.config.json file, making your store available for subscription.
+
 ## Compile Binary (optional)
 
 Instead of running sprout as a npm command, you can build your own binary with the following steps.

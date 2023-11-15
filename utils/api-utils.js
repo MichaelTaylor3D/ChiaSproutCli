@@ -2,7 +2,7 @@ const os = require("os");
 const path = require("path");
 const fs = require("fs");
 
-const { getChiaRoot } = require("./chia-root");
+const { getChiaRoot } = require("chia-root-resolver");
 const { getConfig } = require("./config-loader");
 
 const getBaseOptions = () => {
