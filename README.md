@@ -132,6 +132,12 @@ This command starts a web2 gateway server for development purposes. When you run
 
 This command prints out all available commands in the console.
 
+### `$ sprout test`
+
+Check Chia Config IP Host (checkChiaConfigIpHost): This function is responsible for loading the Chia configuration file from ~/.chia/mainnet/config/config.yaml and verifying that the data_layer.ip_host is correctly set to either 0.0.0.0 or an empty string (but not null). It utilizes the chia-root-resolver module to accurately locate the Chia root directory. The function returns a boolean indicating whether the ip_host is correctly set.
+
+Check File Propagation Server Reachability (checkFilePropagationServerReachable): This function determines the user's IPv4 and IPv6 addresses and sends them to a yet-to-be-built endpoint. The purpose is to check if the local file propagation server is reachable from the outside world. The function leverages a method from the chia-datalayer-mirror-tools repository to obtain the IP addresses, using publicIpv4({forceIp4: true}) for IPv4 and publicIpv4() for IPv6. The information will be sent to https://api.datalayer.storage/system/v1/check_server with a POST request, and the endpoint will return a success status.
+
 ## Configuration
 
 The Sprout CLI uses a configuration file (`sprout.config.json`) to specify various settings such as the data layer store ID (`store_id`), the directory of files to be deployed (`deploy_dir`), the data layer host (`datalayer_host`), the wallet host (`wallet_host`), the location of your certificate folder (`certificate_folder_path`), and some default values for wallet ID, fee, mirror coin amount, and RPC payload size.

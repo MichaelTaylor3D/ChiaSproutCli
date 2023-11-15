@@ -6,6 +6,11 @@ const handlers = require("./handlers");
 const web2 = require("./server");
 
 const commands = {
+  test: {
+    command: "test",
+    desc: "Test the connection to the datalayer and file propagation server",
+    handler: handlers.runTests,
+  },
   deploy: {
     command: "deploy",
     desc: "Deploy files to the datalayer",
@@ -43,6 +48,8 @@ const commands = {
         await handlers.createStoreHandler(argv.new);
       } else if (argv.action === "clean") {
         await handlers.cleanStoreHandler();
+      } else if (argv.action === "test") {
+        await handlers.runTests();
       } else if (argv.action === "mirror") {
         await handlers.mirrorStoreHandler();
       } else {
@@ -58,6 +65,7 @@ async function run() {
     .command(commands.init)
     .command(commands.store)
     .command(commands.web2)
+    .command(commands.test)
     .demandCommand(1, "You need at least one command before moving on")
     .help()
     .alias("h", "help")
