@@ -44,6 +44,8 @@ async function deployHandler() {
     config.store_id
   );
 
+  saveFileListToJson(fileList, config.deploy_dir, config.store_id);
+
   const chunkedChangelist = await changeListGenerator.generateChangeList(
     config.store_id,
     "insert",
@@ -236,6 +238,26 @@ async function checkFilePropagationServerReachableHandler() {
               break;
           }
       }
+  }
+}
+
+function saveFileListToJson(fileList, directory, storeId) {
+  try {
+    const jsonFilePath = path.join(directory, 'manifest.json');
+    const jsonData = {
+      directory,
+      storeId,
+      files: fileList.map(file => ({
+        key: file.key,
+        value: file.value
+      }))
+    };
+
+    fs.writeJsonSync(jsonFilePath, jsonData, { spaces: 2 });
+    console.log(`File list saved as JSON in ${jsonFilePath}`);
+    return jsonData; // Returning jsonData instead of fs's writeJsonSync return value
+  } catch (error) {
+    console.error('Error saving file list:', error);
   }
 }
 
