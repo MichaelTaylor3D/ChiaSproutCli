@@ -243,7 +243,7 @@ async function checkFilePropagationServerReachableHandler() {
 
 function saveFileListToJson(fileList, directory, storeId) {
   try {
-    const jsonFilePath = path.join(directory, '/manifests/manifest.json');
+    const jsonFilePath = path.join(directory, `/manifests/${storeId}.json`);
     const jsonData = {
       directory,
       storeId,
