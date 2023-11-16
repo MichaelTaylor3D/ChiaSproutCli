@@ -261,10 +261,15 @@ function saveFileListToJson(fileList, directory, storeId) {
   }
 }
 
-async function runTests(){
-  await checkChiaConfigIpHostHandler();
-  await checkFilePropagationServerReachableHandler();
-  return true;
+async function runTests() {
+  try {
+    await checkChiaConfigIpHostHandler();
+    await checkFilePropagationServerReachableHandler();
+    return true;
+  } catch (error) {
+    console.error('Error during tests:', error);
+    return false; // Indicate failure of tests
+  }
 }
 
 
