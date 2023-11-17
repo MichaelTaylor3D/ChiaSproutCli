@@ -4,3 +4,4 @@ dist
 sprout.config.json
 package-lock.json
 test
+deploy

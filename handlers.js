@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const fs = require("fs-extra");
 const path = require("path");
 const changeListGenerator = require("chia-changelist-generator");
@@ -16,6 +17,38 @@ const {
   checkFilePropagationServerReachable,
 } = require("./utils/connectivity-utils");
 const { logInfo, logError } = require("./utils/console-tools");
+const { log } = require("console");
+
+async function generateCleanUpChangeList() {
+  const config = getConfig();
+  const datalayer = new Datalayer(config);
+  const fileList = await datalayer.getKeys({ id: config.store_id });
+
+  // Read the contents of the directory
+  const filesInDir = await fs.readdir(config.deploy_dir);
+
+  // Convert filenames in the directory to hexadecimal and create a set for faster lookup
+  const filesInDirHex = new Set(
+    filesInDir.map((fileName) => encodeHex(fileName))
+  );
+
+  // Filter out files that exist in the directory
+  const filteredFileList = fileList.keys
+    .filter((key) => {
+      const hexKey = key.replace("0x", "");
+      return !filesInDirHex.has(hexKey);
+    })
+    .map((key) => ({ key: key.replace("0x", "") }));
+
+  const cleanUpChangeList = await changeListGenerator.generateChangeList(
+    config.store_id,
+    "delete",
+    filteredFileList,
+    { chunkChangeList: true }
+  );
+
+  return cleanUpChangeList;
+}
 
 async function deployHandler() {
   try {
@@ -46,11 +79,40 @@ async function deployHandler() {
     }
 
     changeListGenerator.configure(config);
+    const datalayer = new Datalayer(config);
+
+    const cleanUpChangeList = await generateCleanUpChangeList();
+
+    let cleanupCounter = 1;
+
+    logInfo("Cleaning up orphaned files.");
+    for (const chunk of cleanUpChangeList) {
+      logInfo(
+        `Sending cleanup chunk #${cleanupCounter} of ${
+          cleanUpChangeList.length
+        } to datalayer. Size ${Buffer.byteLength(
+          JSON.stringify(chunk),
+          "utf-8"
+        )}`
+      );
+
+      await datalayer.updateDataStore({
+        id: config.store_id,
+        changelist: _.flatten(chunk),
+      });
+
+      cleanupCounter++;
+    }
 
     const fileList = await walkDirAndCreateFileList(
       config.deploy_dir,
       config.store_id
     );
+
+    if (fileList.length === 0) {
+      logInfo("No files to deploy.");
+      return;
+    }
 
     const chunkedChangelist = await changeListGenerator.generateChangeList(
       config.store_id,
@@ -71,9 +133,8 @@ async function deployHandler() {
 
     let chunkCounter = 1;
 
-    const datalayer = new Datalayer(config);
-
     // Send each chunk in separate transactions
+    logInfo("Pushing new files.");
     for (const chunk of chunkedChangelist) {
       logInfo(
         `Sending chunk #${chunkCounter} of ${
