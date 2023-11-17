@@ -1,6 +1,6 @@
 {
   "name": "chia-sprout-cli",
-  "version": "1.2.23",
+  "version": "1.2.24",
   "description": "CLI tool to deploy a website on datalayer",
   "main": "index.js",
   "bin": {
@@ -24,7 +24,7 @@
     "url": "git+https://github.com/MichaelTaylor3D/ChiaSproutCli.git"
   },
   "dependencies": {
-    "chia-changelist-generator": "^1.0.6",
+    "chia-changelist-generator": "^1.0.7",
     "chia-config-loader": "^1.0.0",
     "chia-datalayer": "^2.0.9",
     "chia-datalayer-mirror-tools": "^1.0.21",
