@@ -191,7 +191,7 @@ async function mirrorStoreHandler() {
       return;
     }
 
-    if (config.mirror_url_override) {
+    if (!_.isNil(config.mirror_url_override)) {
       const datalayer = new Datalayer(config);
       const response = await datalayer.addMirror({
         id: config.store_id,
