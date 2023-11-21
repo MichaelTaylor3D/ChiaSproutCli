@@ -191,15 +191,30 @@ async function mirrorStoreHandler() {
       return;
     }
 
-    datalayerMirror.configure(config);
-    const response = await datalayerMirror.addMirrorForCurrentHost(
-      config.store_id,
-      config.forceIp4Mirror || false
-    );
+    if (config.mirror_url_override) {
+      const datalayer = new Datalayer(config);
+      const response = await datalayer.addMirror({
+        id: config.store_id,
+        urls: [config.mirror_url_override],
+        amount: config.default_mirror_coin_amount,
+        fee: config.default_fee,
+      });
 
-    if (response.success === false) {
-      logError("Failed to add mirror");
-      return;
+      if (response.success === false) {
+        logError("Failed to add mirror");
+        return;
+      }
+    } else {
+      datalayerMirror.configure(config);
+      const response = await datalayerMirror.addMirrorForCurrentHost(
+        config.store_id,
+        config.forceIp4Mirror || false
+      );
+
+      if (response.success === false) {
+        logError("Failed to add mirror");
+        return;
+      }
     }
 
     await wallet.waitForAllTransactionsToConfirm();
