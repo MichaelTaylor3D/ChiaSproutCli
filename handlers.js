@@ -139,10 +139,7 @@ async function deployHandler() {
       logInfo(
         `Sending chunk #${chunkCounter} of ${
           chunkedChangelist.length
-        } to datalayer. Size ${Buffer.byteLength(
-          JSON.stringify(chunk),
-          "utf-8"
-        )}`
+        } to datalayer. Size ${Buffer.from(chunk).length}`
       );
 
       await datalayer.updateDataStore({
@@ -332,6 +329,7 @@ async function walkDirAndCreateFileList(
 
   for (const file of files) {
     const filePath = path.join(dirPath, file);
+    const config = getConfig();
 
     if (fs.statSync(filePath).isDirectory()) {
       const subdirChangeList = await walkDirAndCreateFileList(
@@ -343,13 +341,57 @@ async function walkDirAndCreateFileList(
       fileList.push(...subdirChangeList);
     } else {
       const relativeFilePath = path.relative(rootDir, filePath);
-      const contentBuffer = fs.readFileSync(filePath);
-      const content = contentBuffer.toString("hex");
+      const fileSize = fs.statSync(filePath).size;
 
-      fileList.push({
-        key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
-        value: content,
-      });
+      // 1 MB in bytes is 1024 * 1024 bytes
+      const oneMB = 1024 * 1024; // Bytes
+
+      const chunkSize = config.maximum_rpc_payload_size / 2 - oneMB;
+
+      if (fileSize > chunkSize) {
+        // If file size is more than 22 MB, read in chunks
+        const fileStream = fs.createReadStream(filePath, {
+          highWaterMark: chunkSize,
+        });
+
+        let index = 1;
+        let chunkKeys = [];
+        for await (const chunk of fileStream) {
+          const chunkKey = `${relativeFilePath.replace(
+            /\\/g,
+            "/"
+          )}.part${index}`;
+
+          chunkKeys.push(chunkKey);
+
+          console.log(`Chunk: ${chunkKey} - ${chunk.length} bytes`);
+
+          fileList.push({
+            key: encodeHex(chunkKey),
+            value: chunk.toString("hex"),
+          });
+          index++;
+        }
+
+        fileList.push({
+          key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
+          value: encodeHex(
+            JSON.stringify({
+              type: "multipart",
+              parts: chunkKeys,
+            })
+          ),
+        });
+      } else {
+        // If file size is 22 MB or less, read the entire file
+        const contentBuffer = fs.readFileSync(filePath);
+        content = contentBuffer.toString("hex");
+
+        fileList.push({
+          key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
+          value: content,
+        });
+      }
     }
   }
 
