@@ -139,7 +139,10 @@ async function deployHandler() {
       logInfo(
         `Sending chunk #${chunkCounter} of ${
           chunkedChangelist.length
-        } to datalayer. Size ${Buffer.from(chunk).length}`
+        } to datalayer. Size ${Buffer.byteLength(
+          JSON.stringify(chunk),
+          "utf-8"
+        )}`
       );
 
       await datalayer.updateDataStore({
@@ -349,6 +352,9 @@ async function walkDirAndCreateFileList(
       const chunkSize = config.maximum_rpc_payload_size / 2 - oneMB;
 
       if (fileSize > chunkSize) {
+        changeListGenerator.configure(config);
+        const datalayer = new Datalayer(config);
+
         // If file size is more than 22 MB, read in chunks
         const fileStream = fs.createReadStream(filePath, {
           highWaterMark: chunkSize,
@@ -364,11 +370,30 @@ async function walkDirAndCreateFileList(
 
           chunkKeys.push(chunkKey);
 
-          console.log(`Chunk: ${chunkKey} - ${chunk.length} bytes`);
+          // Push the chunks while we are processing them so we can keep the mempry footprint down for extremely large files
+          const partialFileChangeList =
+            await changeListGenerator.generateChangeList(
+              config.store_id,
+              "insert",
+              [
+                {
+                  key: encodeHex(chunkKey),
+                  value: chunk.toString("hex"),
+                },
+              ],
+              { chunkChangeList: false }
+            );
 
-          fileList.push({
-            key: encodeHex(chunkKey),
-            value: chunk.toString("hex"),
+          console.log(
+            `Pushing partial file to datalayer: ${chunkKey} - ${Buffer.byteLength(
+              chunk,
+              "utf-8"
+            )}`
+          );
+
+          await datalayer.updateDataStore({
+            id: config.store_id,
+            changelist: partialFileChangeList,
           });
           index++;
         }
