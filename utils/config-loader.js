@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const CONFIG_FILENAME = "sprout.config.json";
 const DEFAULT_CONFIG = {
   store_id: null,
-  deploy_dir: "./build",
+  deploy_dir: "./deploy",
   datalayer_host: "https://localhost:8562",
   wallet_host: "https://localhost:9256",
   certificate_folder_path: "~/.chia/mainnet/config/ssl",
@@ -15,6 +15,7 @@ const DEFAULT_CONFIG = {
   web2_gateway_host: "localhost",
   forceIp4Mirror: true,
   mirror_url_override: null,
+  verbose: false
 };
 
 const getConfig = () => {
