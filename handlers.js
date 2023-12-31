@@ -11,6 +11,7 @@ const {
   CONFIG_FILENAME,
   DEFAULT_CONFIG,
 } = require("./utils/config-loader");
+const { checkForNewerVersion } = require("./utils/version-utils");
 
 const {
   checkChiaConfigIpHost,
@@ -52,6 +53,7 @@ async function generateCleanUpChangeList() {
 
 async function deployHandler() {
   try {
+    await checkForNewerVersion();
     await checkChiaConfigIpHostHandler();
     await checkFilePropagationServerReachableHandler();
 
@@ -162,8 +164,9 @@ async function deployHandler() {
   }
 }
 
-function initHandler() {
+async function initHandler() {
   try {
+    await checkForNewerVersion();
     if (fs.existsSync(CONFIG_FILENAME)) {
       logInfo(
         "A sprout.config.json file already exists in the current directory."
@@ -183,6 +186,7 @@ function initHandler() {
 
 async function mirrorStoreHandler() {
   try {
+    await checkForNewerVersion();
     await wallet.waitForAllTransactionsToConfirm();
     const config = getConfig();
 
@@ -230,6 +234,7 @@ async function mirrorStoreHandler() {
 
 async function createStoreHandler(isNew = false) {
   try {
+    await checkForNewerVersion();
     const config = getConfig();
 
     if (!isNew && config.store_id !== null) {
@@ -276,6 +281,7 @@ async function createStoreHandler(isNew = false) {
 
 async function cleanStoreHandler() {
   try {
+    await checkForNewerVersion();
     const config = getConfig();
 
     if (config.store_id === null) {
@@ -465,6 +471,7 @@ async function checkFilePropagationServerReachableHandler() {
 
 async function runConnectionCheckHandler() {
   try {
+    await checkForNewerVersion();
     const configSetup = await checkChiaConfigIpHostHandler();
     const ipVisible = await checkFilePropagationServerReachableHandler();
 
