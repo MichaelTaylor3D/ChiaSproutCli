@@ -51,7 +51,7 @@ async function generateCleanUpChangeList() {
   return cleanUpChangeList;
 }
 
-async function deployHandler(options = {}) {
+async function deployHandler() {
   try {
     await checkForNewerVersion();
     await checkChiaConfigIpHostHandler();
@@ -83,7 +83,7 @@ async function deployHandler(options = {}) {
     changeListGenerator.configure(config);
     const datalayer = new Datalayer(config);
 
-    if (!options?.ignoreOrphans) {
+    if (!config.ignore_orphans) {
       const cleanUpChangeList = await generateCleanUpChangeList();
 
       let cleanupCounter = 1;

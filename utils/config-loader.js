@@ -17,6 +17,7 @@ const DEFAULT_CONFIG = {
   mirror_url_override: null,
   verbose: false,
   num_files_processed_per_batch: 100,
+  ignore_orphans: false,
 };
 
 const getConfig = () => {

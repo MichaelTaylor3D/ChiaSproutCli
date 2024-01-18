@@ -16,11 +16,6 @@ const commands = {
     desc: "Deploy files to the datalayer",
     handler: handlers.deployHandler,
   },
-  deployIgnoreOrphans: {
-    command: "deployIgnoreOrphans",
-    desc: "Deploy files to the datalayer",
-    handler: () => handlers.deployHandler({ ignoreOrphans: true }),
-  },
   web2: {
     command: "web2",
     desc: "Run a web2 gateway server to view your datalayer files",
@@ -65,7 +60,6 @@ const commands = {
 async function run() {
   const argv = yargs(hideBin(process.argv))
     .command(commands.deploy)
-    .command(commands.deployIgnoreOrphans)
     .command(commands.init)
     .command(commands.store)
     .command(commands.web2)
