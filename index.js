@@ -16,6 +16,11 @@ const commands = {
     desc: "Deploy files to the datalayer",
     handler: handlers.deployHandler,
   },
+  deployIgnoreOrphans: {
+    command: "deployIgnoreOrphans",
+    desc: "Deploy files to the datalayer",
+    handler: () => handlers.deployHandler({ ignoreOrphans: true }),
+  },
   web2: {
     command: "web2",
     desc: "Run a web2 gateway server to view your datalayer files",

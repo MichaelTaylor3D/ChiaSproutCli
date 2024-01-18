@@ -51,7 +51,7 @@ async function generateCleanUpChangeList() {
   return cleanUpChangeList;
 }
 
-async function deployHandler() {
+async function deployHandler(options = {}) {
   try {
     await checkForNewerVersion();
     await checkChiaConfigIpHostHandler();
@@ -83,77 +83,32 @@ async function deployHandler() {
     changeListGenerator.configure(config);
     const datalayer = new Datalayer(config);
 
-    const cleanUpChangeList = await generateCleanUpChangeList();
+    if (!options?.ignoreOrphans) {
+      const cleanUpChangeList = await generateCleanUpChangeList();
 
-    let cleanupCounter = 1;
+      let cleanupCounter = 1;
 
-    logInfo("Cleaning up orphaned files.");
-    for (const chunk of cleanUpChangeList) {
-      logInfo(
-        `Sending cleanup chunk #${cleanupCounter} of ${
-          cleanUpChangeList.length
-        } to datalayer. Size ${Buffer.byteLength(
-          JSON.stringify(chunk),
-          "utf-8"
-        )}`
-      );
+      logInfo("Cleaning up orphaned files.");
+      for (const chunk of cleanUpChangeList) {
+        logInfo(
+          `Sending cleanup chunk #${cleanupCounter} of ${
+            cleanUpChangeList.length
+          } to datalayer. Size ${Buffer.byteLength(
+            JSON.stringify(chunk),
+            "utf-8"
+          )}`
+        );
 
-      await datalayer.updateDataStore({
-        id: config.store_id,
-        changelist: _.flatten(chunk),
-      });
+        await datalayer.updateDataStore({
+          id: config.store_id,
+          changelist: _.flatten(chunk),
+        });
 
-      cleanupCounter++;
+        cleanupCounter++;
+      }
     }
 
-    const fileList = await walkDirAndCreateFileList(
-      config.deploy_dir,
-      config.store_id
-    );
-
-    if (fileList.length === 0) {
-      logInfo("No files to deploy.");
-      return;
-    }
-
-    const chunkedChangelist = await changeListGenerator.generateChangeList(
-      config.store_id,
-      "insert",
-      fileList,
-      { chunkChangeList: true }
-    );
-
-    logInfo(
-      `Pushing files to datalayer in ${chunkedChangelist.length} transaction(s).`
-    );
-
-    if (chunkedChangelist.length > 1) {
-      logInfo(
-        "There are multiple transactions due to the size of the changelist, this operation may take a while to complete."
-      );
-    }
-
-    let chunkCounter = 1;
-
-    // Send each chunk in separate transactions
-    logInfo("Pushing new files.");
-    for (const chunk of chunkedChangelist) {
-      logInfo(
-        `Sending chunk #${chunkCounter} of ${
-          chunkedChangelist.length
-        } to datalayer. Size ${Buffer.byteLength(
-          JSON.stringify(chunk),
-          "utf-8"
-        )}`
-      );
-
-      await datalayer.updateDataStore({
-        id: config.store_id,
-        changelist: chunk,
-      });
-
-      chunkCounter++;
-    }
+    await walkDirAndCreateFileList(config.deploy_dir, config.store_id);
 
     logInfo("Deploy operation completed successfully.");
   } catch (error) {
@@ -333,97 +288,134 @@ async function walkDirAndCreateFileList(
   rootDir = dirPath
 ) {
   const files = fs.readdirSync(dirPath);
-
   let fileList = [];
+  const config = getConfig();
 
-  for (const file of files) {
-    const filePath = path.join(dirPath, file);
-    const config = getConfig();
+  changeListGenerator.configure(config);
+  const datalayer = new Datalayer(config);
 
-    if (fs.statSync(filePath).isDirectory()) {
-      const subdirChangeList = await walkDirAndCreateFileList(
-        filePath,
-        storeId,
-        existingKeys,
-        rootDir
-      );
-      fileList.push(...subdirChangeList);
-    } else {
-      const relativeFilePath = path.relative(rootDir, filePath);
-      const fileSize = fs.statSync(filePath).size;
+  for (let i = 0; i < files.length; i += 100) {
+    const fileBatch = files.slice(i, i + 100);
 
-      // 1 MB in bytes is 1024 * 1024 bytes
-      const oneMB = 1024 * 1024; // Bytes
+    for (const file of fileBatch) {
+      const filePath = path.join(dirPath, file);
 
-      const chunkSize = config.maximum_rpc_payload_size / 2 - oneMB;
+      if (fs.statSync(filePath).isDirectory()) {
+        const subdirChangeList = await walkDirAndCreateFileList(
+          filePath,
+          storeId,
+          existingKeys,
+          rootDir
+        );
+        fileList.push(...subdirChangeList);
+      } else {
+        const relativeFilePath = path.relative(rootDir, filePath);
+        const fileSize = fs.statSync(filePath).size;
 
-      if (fileSize > chunkSize) {
-        changeListGenerator.configure(config);
-        const datalayer = new Datalayer(config);
+        // 1 MB in bytes is 1024 * 1024 bytes
+        const oneMB = 1024 * 1024; // Bytes
 
-        // If file size is more than 22 MB, read in chunks
-        const fileStream = fs.createReadStream(filePath, {
-          highWaterMark: chunkSize,
-        });
+        const chunkSize = config.maximum_rpc_payload_size / 2 - oneMB;
 
-        let index = 1;
-        let chunkKeys = [];
-        for await (const chunk of fileStream) {
-          const chunkKey = `${relativeFilePath.replace(
-            /\\/g,
-            "/"
-          )}.part${index}`;
+        if (fileSize > chunkSize) {
+          changeListGenerator.configure(config);
+          const datalayer = new Datalayer(config);
 
-          chunkKeys.push(chunkKey);
+          // If file size is more than 22 MB, read in chunks
+          const fileStream = fs.createReadStream(filePath, {
+            highWaterMark: chunkSize,
+          });
 
-          // Push the chunks while we are processing them so we can keep the mempry footprint down for extremely large files
-          const partialFileChangeList =
-            await changeListGenerator.generateChangeList(
-              config.store_id,
-              "insert",
-              [
-                {
-                  key: encodeHex(chunkKey),
-                  value: chunk.toString("hex"),
-                },
-              ],
-              { chunkChangeList: false }
+          let index = 1;
+          let chunkKeys = [];
+          for await (const chunk of fileStream) {
+            const chunkKey = `${relativeFilePath.replace(
+              /\\/g,
+              "/"
+            )}.part${index}`;
+
+            chunkKeys.push(chunkKey);
+
+            // Push the chunks while we are processing them so we can keep the mempry footprint down for extremely large files
+            const partialFileChangeList =
+              await changeListGenerator.generateChangeList(
+                config.store_id,
+                "insert",
+                [
+                  {
+                    key: encodeHex(chunkKey),
+                    value: chunk.toString("hex"),
+                  },
+                ],
+                { chunkChangeList: false }
+              );
+
+            console.log(
+              `Pushing partial file to datalayer: ${chunkKey} - ${Buffer.byteLength(
+                chunk,
+                "utf-8"
+              )}`
             );
 
-          console.log(
-            `Pushing partial file to datalayer: ${chunkKey} - ${Buffer.byteLength(
-              chunk,
-              "utf-8"
-            )}`
-          );
+            await datalayer.updateDataStore({
+              id: config.store_id,
+              changelist: partialFileChangeList,
+            });
+            index++;
+          }
 
-          await datalayer.updateDataStore({
-            id: config.store_id,
-            changelist: partialFileChangeList,
+          fileList.push({
+            key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
+            value: encodeHex(
+              JSON.stringify({
+                type: "multipart",
+                parts: chunkKeys,
+              })
+            ),
           });
-          index++;
+        } else {
+          // If file size is 22 MB or less, read the entire file
+          const contentBuffer = fs.readFileSync(filePath);
+          content = contentBuffer.toString("hex");
+
+          fileList.push({
+            key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
+            value: content,
+          });
         }
-
-        fileList.push({
-          key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
-          value: encodeHex(
-            JSON.stringify({
-              type: "multipart",
-              parts: chunkKeys,
-            })
-          ),
-        });
-      } else {
-        // If file size is 22 MB or less, read the entire file
-        const contentBuffer = fs.readFileSync(filePath);
-        content = contentBuffer.toString("hex");
-
-        fileList.push({
-          key: encodeHex(relativeFilePath.replace(/\\/g, "/")),
-          value: content,
-        });
       }
     }
+
+    // Process the current batch
+    if (fileList.length > 0) {
+      const chunkedChangelist = await changeListGenerator.generateChangeList(
+        storeId,
+        "insert",
+        fileList,
+        { chunkChangeList: true }
+      );
+
+      let chunkCounter = 1;
+
+      for (const chunk of chunkedChangelist) {
+        logInfo(
+          `Sending chunk #${chunkCounter} of ${
+            chunkedChangelist.length
+          } to datalayer. Size ${Buffer.byteLength(
+            JSON.stringify(chunk),
+            "utf-8"
+          )}`
+        );
+
+        await datalayer.updateDataStore({
+          id: storeId,
+          changelist: chunk,
+        });
+
+        chunkCounter++;
+      }
+    }
+    fileList = [];
   }
 
   return fileList;
