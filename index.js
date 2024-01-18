@@ -65,6 +65,7 @@ const commands = {
 async function run() {
   const argv = yargs(hideBin(process.argv))
     .command(commands.deploy)
+    .command(commands.deployIgnoreOrphans)
     .command(commands.init)
     .command(commands.store)
     .command(commands.web2)

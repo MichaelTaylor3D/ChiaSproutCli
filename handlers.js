@@ -294,8 +294,10 @@ async function walkDirAndCreateFileList(
   changeListGenerator.configure(config);
   const datalayer = new Datalayer(config);
 
-  for (let i = 0; i < files.length; i += 100) {
-    const fileBatch = files.slice(i, i + 100);
+  const batchSize = config.num_files_processed_per_batch ?? 100;
+
+  for (let i = 0; i < files.length; i += batchSize) {
+    const fileBatch = files.slice(i, i + batchSize);
 
     for (const file of fileBatch) {
       const filePath = path.join(dirPath, file);

@@ -15,7 +15,8 @@ const DEFAULT_CONFIG = {
   web2_gateway_host: "localhost",
   forceIp4Mirror: true,
   mirror_url_override: null,
-  verbose: false
+  verbose: false,
+  num_files_processed_per_batch: 100,
 };
 
 const getConfig = () => {
