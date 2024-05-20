@@ -102,6 +102,11 @@ async function deployHandler() {
         await datalayer.updateDataStore({
           id: config.store_id,
           changelist: _.flatten(chunk),
+          submit_on_chain: false
+        });
+
+        await datalayer.submitPendingRoot({
+          id: config.store_id,
         });
 
         cleanupCounter++;
@@ -269,6 +274,7 @@ async function cleanStoreHandler() {
       await datalayer.updateDataStore({
         id: config.store_id,
         changelist: chunk,
+        submit_on_chain: false
       });
     }
 
@@ -342,7 +348,7 @@ async function walkDirAndCreateFileList(
             const partialFileChangeList =
               await changeListGenerator.generateChangeList(
                 config.store_id,
-                "insert",
+                "upsert",
                 [
                   {
                     key: encodeHex(chunkKey),
@@ -362,6 +368,7 @@ async function walkDirAndCreateFileList(
             await datalayer.updateDataStore({
               id: config.store_id,
               changelist: partialFileChangeList,
+              submit_on_chain: false
             });
             index++;
           }
@@ -392,7 +399,7 @@ async function walkDirAndCreateFileList(
     if (fileList.length > 0) {
       const chunkedChangelist = await changeListGenerator.generateChangeList(
         storeId,
-        "insert",
+        "upsert",
         fileList,
         { chunkChangeList: true }
       );
@@ -412,6 +419,7 @@ async function walkDirAndCreateFileList(
         await datalayer.updateDataStore({
           id: storeId,
           changelist: chunk,
+          submit_on_chain: false
         });
 
         chunkCounter++;
