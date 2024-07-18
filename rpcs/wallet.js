@@ -6,6 +6,8 @@ const walletIsSynced = async () => {
   try {
     const { cert, key, timeout, CONFIG } = getBaseOptions();
 
+    console.log(`Checking if wallet is synced at: ${CONFIG.wallet_host}`);
+
     const response = await superagent
       .post(`${CONFIG.wallet_host}/get_sync_status`)
       .send({})
@@ -22,6 +24,7 @@ const walletIsSynced = async () => {
 
     return false;
   } catch (error) {
+    console.log("Error checking if wallet is synced", error);
     return false;
   }
 };
