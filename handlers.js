@@ -105,15 +105,19 @@ async function deployHandler() {
           submit_on_chain: false
         });
 
-        await datalayer.submitPendingRoot({
-          id: config.store_id,
-        });
-
         cleanupCounter++;
       }
     }
 
+    await datalayer.submitPendingRoot({
+      id: config.store_id,
+    });
+
     await walkDirAndCreateFileList(config.deploy_dir, config.store_id);
+
+    await datalayer.submitPendingRoot({
+      id: config.store_id,
+    });
 
     logInfo("Deploy operation completed successfully.");
   } catch (error) {

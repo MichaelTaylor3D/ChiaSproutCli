@@ -12,12 +12,12 @@ const getBaseOptions = () => {
 
   console.log(CONFIG.certificate_folder_path);
 
- // if (process.env.CERT_BASE64 && process.env.KEY_BASE64) {
-//    console.log(`Using cert and key from environment variables.`);
+  if (process.env.CERT_BASE64 && process.env.KEY_BASE64) {
+    console.log(`Using cert and key from environment variables.`);
 
- //   cert = Buffer.from(process.env.CERT_BASE64, "base64").toString("ascii");
- //   key = Buffer.from(process.env.KEY_BASE64, "base64").toString("ascii");
-  //} else {
+    cert = Buffer.from(process.env.CERT_BASE64, "base64").toString("ascii");
+    key = Buffer.from(process.env.KEY_BASE64, "base64").toString("ascii");
+  } else {
     let certificateFolderPath =
       CONFIG.certificate_folder_path || `${chiaRoot}/config/ssl`;
 
@@ -30,17 +30,20 @@ const getBaseOptions = () => {
     }
 
     const certFile = path.resolve(
-      `${certificateFolderPath}/data_layer/public_data_layer.crt`
+      `${certificateFolderPath}/data_layer/private_data_layer.crt`
     );
     const keyFile = path.resolve(
-      `${certificateFolderPath}/data_layer/public_data_layer.key`
+      `${certificateFolderPath}/data_layer/private_data_layer.key`
     );
 
-    console.log(`${certificateFolderPath}/data_layer/public_data_layer.crt`);
+    if (CONFIG.verbose) {
+      console.log(`Certificate file: ${certFile}`);
+      console.log(`Key file: ${keyFile}`);
+    }
 
     cert = fs.readFileSync(certFile);
     key = fs.readFileSync(keyFile);
-  //}
+  }
 
   const baseOptions = {
     method: "POST",
